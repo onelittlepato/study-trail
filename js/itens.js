@@ -462,15 +462,34 @@ function adicionarItemHome() {
     return;
   }
 
-  // Tema: sem data, apenas semana/prioridade
+  // Tema: pode ter data, período, ou nenhum dos dois
   if (tipoSelecionadoHome === "tema") {
     const semana = document.getElementById("homeSemana")?.value.trim() || "";
     const prioridade = document.getElementById("homePrioridade")?.value || "media";
     const obs = document.getElementById("homeObs")?.value.trim() || "";
+    const dados = lerModoData("home");
+
+    // Validações de período
+    if (dados.modo === "periodo") {
+      if (!dados.dataInicio || !dados.dataFim) {
+        mostrarToast("Preencha início e fim do período.", "aviso");
+        return;
+      }
+      if (dados.dataFim < dados.dataInicio) {
+        mostrarToast("Data final antes da inicial.", "aviso");
+        return;
+      }
+    }
 
     itens.push(criarItem({
       disciplinaId, nome,
-      tipo: "tema", semana, prioridade, observacoes: obs
+      tipo: "tema",
+      data: dados.modo === "unica" ? dados.data : "",
+      dataInicio: dados.modo === "periodo" ? dados.dataInicio : "",
+      dataFim: dados.modo === "periodo" ? dados.dataFim : "",
+      semana,
+      prioridade,
+      observacoes: obs
     }));
   } else {
     const dados = lerModoData("home");

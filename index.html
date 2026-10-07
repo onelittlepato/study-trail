@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Study Trail — organizador de estudos universitários, offline e sem dependências.">
-  <meta name="theme-color" content="#4a6cf7">
+  <meta name="theme-color" content="#4f46e5">
   <title>Study Trail 🎓</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -37,8 +37,7 @@
       </div>
     </div>
 
-    <div id="hojeContainer"></div>
-    <div id="proximosContainer"></div>
+    <div id="roadmapContainer"></div>
 
     <div class="add-panel">
       <h3>➕ Adicionar nova entrada</h3>
@@ -60,20 +59,19 @@
         </button>
       </div>
     </div>
+
     <div class="grid-cards" id="gridStats"></div>
 
-    <div class="card">
-      <h2>📈 Progresso do Semestre</h2>
+    <div class="progresso-bloco">
+      <h2 class="secao-titulo">📈 Progresso do semestre</h2>
       <div class="barra-progresso">
         <div class="preenchimento" id="barraSemestre" style="width: 0%">0%</div>
       </div>
       <p id="textoProgresso" class="texto-centro-fraco"></p>
     </div>
 
-    <div id="atrasadasContainer"></div>
-
-    <div class="card">
-      <h2>📚 Por Disciplina</h2>
+    <div class="secao-bloco">
+      <h2 class="secao-titulo">📚 Disciplinas</h2>
       <div id="resumoDisciplinas"></div>
     </div>
 
@@ -81,28 +79,26 @@
 
   <!-- ================= SEMANA ================= -->
   <section id="semana" class="secao">
-    <div class="card">
-      <div class="semana-controle">
-        <button class="btn neutro" onclick="mudarSemana(-1)">⬅️ Anterior</button>
-        <h2 id="tituloSemana">Semana</h2>
-        <button class="btn neutro" onclick="mudarSemana(1)">Próxima ➡️</button>
-      </div>
-      <div class="texto-centro" style="margin-bottom:1rem;">
-        <button class="btn" onclick="irParaHoje()">🎯 Ir para hoje</button>
-      </div>
-      <div class="semana-resumo" id="resumoSemana"></div>
+    <div class="semana-controle">
+      <button class="btn neutro" onclick="mudarSemana(-1)">⬅️ Anterior</button>
+      <h2 id="tituloSemana">Semana</h2>
+      <button class="btn neutro" onclick="mudarSemana(1)">Próxima ➡️</button>
     </div>
+    <div class="texto-centro" style="margin-bottom:1rem;">
+      <button class="btn" onclick="irParaHoje()">🎯 Ir para hoje</button>
+    </div>
+    <div class="semana-resumo" id="resumoSemana"></div>
     <div id="diasSemana"></div>
-    <div class="card" id="cardSemData" style="display:none;">
-      <h2>📌 Sem data definida</h2>
+    <div class="secao-bloco" id="cardSemData" style="display:none;">
+      <h2 class="secao-titulo">📌 Sem data definida</h2>
       <ul class="lista" id="listaSemData"></ul>
     </div>
   </section>
 
   <!-- ================= DISCIPLINAS ================= -->
   <section id="disciplinas" class="secao">
-    <div class="card">
-      <h2>Nova Disciplina</h2>
+    <div class="secao-bloco">
+      <h2 class="secao-titulo">Nova disciplina</h2>
       <div class="form-linha">
         <input type="text" id="discNome" placeholder="Ex: Cálculo I">
         <input type="text" id="discProfessor" placeholder="Professor (opcional)">
@@ -132,8 +128,8 @@
 
   <!-- ================= NOTAS ================= -->
   <section id="notas" class="secao">
-    <div class="card">
-      <h2>Adicionar Nota</h2>
+    <div class="secao-bloco">
+      <h2 class="secao-titulo">Adicionar nota</h2>
       <div class="form-linha">
         <select id="notaDisciplina"></select>
         <input type="text" id="notaAvaliacao" placeholder="Ex: P1, Trabalho">
@@ -142,17 +138,17 @@
         <button class="btn" onclick="adicionarNota()">Adicionar</button>
       </div>
     </div>
-    <div class="card">
-      <h2>Minhas Notas</h2>
+    <div class="secao-bloco">
+      <h2 class="secao-titulo">Minhas notas</h2>
       <div id="listaNotas"></div>
     </div>
   </section>
-  <!-- ================= MODAL DE ADIÇÃO ================= -->
+
+  <!-- ================= MODAL ================= -->
   <div id="modalOverlay" class="modal-overlay" onclick="fecharModalSeFora(event)">
-    <div class="modal" id="modalConteudo" role="dialog" aria-modal="true">
-      <!-- preenchido via JS -->
-    </div>
+    <div class="modal" id="modalConteudo" role="dialog" aria-modal="true"></div>
   </div>
+
   <div id="toast" class="toast"></div>
 
   <script src="js/utils.js"></script>

@@ -6,26 +6,55 @@
 /* ============ NAVEGAÇÃO ENTRE ABAS ============ */
 
 function mostrarSecao(id, btn) {
-  // Troca a seção ativa
-  document.querySelectorAll(".secao").forEach(s => s.classList.remove("ativa"));
-  const secao = document.getElementById(id);
-  if (secao) secao.classList.add("ativa");
+  const atual = document.querySelector(".secao.ativa");
+  const destino = document.getElementById(id);
 
-  // Troca o botão ativo
+  if (!destino) return;
+
+  // Se já está na seção, só re-renderiza
+  if (atual === destino) {
+    renderizarSecao(id);
+    return;
+  }
+
+  // Reset de estados ao sair
+  if (id !== "paginaDisciplina") disciplinaAberta = null;
+  if (id !== "paginaTema") temaAberto = null;
+
+  // Aplica fade-out na seção atual e espera terminar
+  if (atual) {
+    atual.classList.add("saindo");
+    setTimeout(() => {
+      atual.classList.remove("ativa", "saindo");
+      trocarParaDestino(destino, id, btn);
+    }, 150);
+  } else {
+    trocarParaDestino(destino, id, btn);
+  }
+}
+
+/**
+ * Faz a troca real da seção + atualização do botão da nav.
+ */
+function trocarParaDestino(destino, id, btn) {
+  // Atualiza botão ativo na nav
   document.querySelectorAll("#navPrincipal button").forEach(b => b.classList.remove("ativo"));
   if (btn) btn.classList.add("ativo");
 
-  // Reset da disciplina aberta ao sair da página dela
-  if (id !== "paginaDisciplina") {
-    disciplinaAberta = null;
-  }
-   
- // Reset do tema aberto ao sair da página dele
-  if (id !== "paginaTema") {
-    temaAberto = null;
-  }
+  // Mostra a seção de destino (com fade-in automático pelo CSS)
+  destino.classList.add("ativa");
 
-  // Renderiza conforme a aba
+  // Renderiza o conteúdo
+  renderizarSecao(id);
+
+  // Rola pro topo suavemente
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/**
+ * Renderiza a seção específica (chamado pelo trocarParaDestino).
+ */
+function renderizarSecao(id) {
   switch (id) {
     case "inicio":
       if (typeof renderInicio === "function") renderInicio();
@@ -41,8 +70,6 @@ function mostrarSecao(id, btn) {
       if (typeof renderNotas === "function") renderNotas();
       break;
   }
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /* ============ ATALHOS DE TECLADO ============ */

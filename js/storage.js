@@ -24,6 +24,7 @@ let notas = [];
 let semanaAtual = getSegundaDaSemana(new Date());
 let disciplinaAberta = null;
 let tipoSelecionadoHome = "tema";
+let temaAberto = null;
 let tipoSelecionadoDisc = "tema";
 let buscaDisciplina = "";
 let viewTimeline = "timeline";     // "timeline" | "calendario"

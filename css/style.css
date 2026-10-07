@@ -876,3 +876,96 @@ html[data-tema="escuro"] .prox-item-periodo { background: #4a2a1f; color: #ffb08
   .home-disc-icone { width: 32px; height: 32px; font-size: 0.95rem; }
   .home-disc-media { font-size: 0.95rem; }
 }
+
+/* ============ TRANSIÇÕES ENTRE PÁGINAS ============ */
+
+/* Estado base das seções */
+.secao {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  display: none;
+}
+
+/* Seção ativa: fade-in completo */
+.secao.ativa {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Estado de saída (aplicado via JS antes de trocar) */
+.secao.saindo {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Card de disciplina com fade-in individual (efeito cascata na Home) */
+.home-disc-card {
+  animation: fadeInUp 0.35s ease backwards;
+}
+.home-disc-card:nth-child(1) { animation-delay: 0.02s; }
+.home-disc-card:nth-child(2) { animation-delay: 0.06s; }
+.home-disc-card:nth-child(3) { animation-delay: 0.10s; }
+.home-disc-card:nth-child(4) { animation-delay: 0.14s; }
+.home-disc-card:nth-child(5) { animation-delay: 0.18s; }
+.home-disc-card:nth-child(6) { animation-delay: 0.22s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Anima os itens da lista de próximos (efeito cascata) */
+.prox-item {
+  animation: fadeInUp 0.3s ease backwards;
+}
+.grupo-dia-card:nth-child(1) .prox-item { animation-delay: 0.03s; }
+.grupo-dia-card:nth-child(2) .prox-item { animation-delay: 0.07s; }
+.grupo-dia-card:nth-child(3) .prox-item { animation-delay: 0.11s; }
+.grupo-dia-card:nth-child(4) .prox-item { animation-delay: 0.15s; }
+.grupo-dia-card:nth-child(5) .prox-item { animation-delay: 0.19s; }
+
+/* Animação do header da disciplina / tema ao abrir */
+.disc-header,
+.tema-header {
+  animation: fadeInUp 0.35s ease;
+}
+
+/* Itens do card da disciplina (seções) */
+.item-card {
+  animation: fadeInUp 0.25s ease backwards;
+}
+.item-card:nth-child(1) { animation-delay: 0.02s; }
+.item-card:nth-child(2) { animation-delay: 0.05s; }
+.item-card:nth-child(3) { animation-delay: 0.08s; }
+.item-card:nth-child(4) { animation-delay: 0.11s; }
+.item-card:nth-child(5) { animation-delay: 0.14s; }
+
+/* Toast já tem sua própria transição — mantém */
+
+/* Respeita acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .secao,
+  .home-disc-card,
+  .prox-item,
+  .disc-header,
+  .tema-header,
+  .item-card {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .secao { display: none; }
+  .secao.ativa { display: block; }
+}

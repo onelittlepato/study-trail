@@ -17,12 +17,25 @@ function abrirTema(temaId) {
 
   temaAberto = temaId;
 
-  document.querySelectorAll(".secao").forEach(s => s.classList.remove("ativa"));
-  document.getElementById("paginaTema").classList.add("ativa");
-  document.querySelectorAll("#navPrincipal button").forEach(b => b.classList.remove("ativo"));
+  const atual = document.querySelector(".secao.ativa");
+  const destino = document.getElementById("paginaTema");
 
-  renderPaginaTema(temaId);
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (atual && atual !== destino) {
+    atual.classList.add("saindo");
+    setTimeout(() => {
+      atual.classList.remove("ativa", "saindo");
+      destino.classList.add("ativa");
+      document.querySelectorAll("#navPrincipal button").forEach(b => b.classList.remove("ativo"));
+      renderPaginaTema(temaId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 150);
+  } else {
+    document.querySelectorAll(".secao").forEach(s => s.classList.remove("ativa"));
+    destino.classList.add("ativa");
+    document.querySelectorAll("#navPrincipal button").forEach(b => b.classList.remove("ativo"));
+    renderPaginaTema(temaId);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 /**

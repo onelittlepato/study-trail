@@ -1,0 +1,19 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.sublime-*
+*.swp
+
+# Backups locais
+*.bak
+*.backup
+*.local
+
+# Node (caso use ferramentas depois)
+node_modules/
+package-lock.json

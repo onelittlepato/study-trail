@@ -192,18 +192,20 @@ function renderPaginaTema(temaId) {
 
     <!-- Ações rápidas -->
     <div class="add-panel">
-      <h3>➕ Adicionar item já vinculado a este tema</h3>
-      <div class="tipo-selector" id="tipoSelectorTema">
-        <button data-tipo="exame" onclick="selecionarTipoTema('exame')">
-          <span class="icone">🎯</span><span>Novo exame</span>
+      <h3>➕ Adicionar vinculado a este tema</h3>
+      <div class="add-tipo-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <button class="add-tipo-card" data-tipo="exame" onclick="abrirModalVinculadoTema(${tema.id}, 'exame')">
+          <span class="add-tipo-icone">🎯</span>
+          <span class="add-tipo-label">Novo exame</span>
+          <span class="add-tipo-desc">Já vinculado a este tema</span>
         </button>
-        <button data-tipo="atividade" onclick="selecionarTipoTema('atividade')">
-          <span class="icone">📝</span><span>Nova atividade</span>
+        <button class="add-tipo-card" data-tipo="atividade" onclick="abrirModalVinculadoTema(${tema.id}, 'atividade')">
+          <span class="add-tipo-icone">📝</span>
+          <span class="add-tipo-label">Nova atividade</span>
+          <span class="add-tipo-desc">Já vinculada a este tema</span>
         </button>
       </div>
-      <div id="formDinamicoTema"></div>
     </div>
-  `;
 
   // inicia no tipo "exame"
   selecionarTipoTema("exame");

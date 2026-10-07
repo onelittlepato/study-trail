@@ -1163,3 +1163,41 @@ html[data-tema="escuro"] .tag-chip {
   .hoje-box h2 { font-size: 1.3rem; }
   .disc-header h2 { font-size: 1.2rem; }
 }
+
+/* Toggle de modo de data (3 opções: sem-data / única / período) */
+.modo-data-toggle {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+}
+.modo-data-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--bg-card);
+  border: 2px solid var(--borda);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  user-select: none;
+}
+.modo-data-toggle label:hover {
+  border-color: var(--primaria);
+}
+.modo-data-toggle input[type="radio"] {
+  width: auto;
+  flex: 0;
+  min-width: auto;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primaria);
+}
+.modo-data-toggle label:has(input:checked) {
+  background: var(--primaria-suave);
+  border-color: var(--primaria);
+  color: var(--primaria);
+}

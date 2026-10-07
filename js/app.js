@@ -19,6 +19,11 @@ function mostrarSecao(id, btn) {
   if (id !== "paginaDisciplina") {
     disciplinaAberta = null;
   }
+   
+ // Reset do tema aberto ao sair da página dele
+  if (id !== "paginaTema") {
+    temaAberto = null;
+  }
 
   // Renderiza conforme a aba
   switch (id) {

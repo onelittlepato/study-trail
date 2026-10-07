@@ -703,9 +703,11 @@ function renderItemCard(item, temasTodos, exames, atividades, corDisc) {
   if (item.semana) metaHtml.push(`<span class="badge tema">${escaparHtml(item.semana)}</span>`);
   if (atrasado) metaHtml.push('<span class="badge atrasada">ATRASADA</span>');
 
+  const clicavel = item.tipo === "tema" ? `onclick="abrirTema(${item.id})" style="cursor:pointer; border-left-color:${corDisc};"` : `style="border-left-color:${corDisc};"`;
+
   return `
-    <div class="item-card ${item.tipo} ${item.concluida ? 'concluida' : ''}" style="border-left-color:${corDisc};">
-      <div class="item-header">
+    <div class="item-card ${item.tipo} ${item.concluida ? 'concluida' : ''}" ${clicavel}>
+      <div class="item-header" onclick="event.stopPropagation();">
         <input type="checkbox" ${item.concluida ? "checked" : ""}
                onchange="alternarItem(${item.id})">
         <div class="titulo">
@@ -724,6 +726,13 @@ function renderItemCard(item, temasTodos, exames, atividades, corDisc) {
         </div>
       </div>
       ${vinculosHtml}
+      ${item.tipo === "tema" ? `
+        <div style="margin-top:0.6rem; padding-top:0.6rem; border-top:1px dashed var(--borda); font-size:0.8rem; color:var(--cor-fraca, #888); display:flex; justify-content:space-between; align-items:center;">
+          <span>Clique no card para abrir a página completa do tema</span>
+          <span style="color:${corDisc}; font-weight:700;">→</span>
+        </div>
+      ` : ""}
+      <div class="item-notas ${temObs ? 'visivel' : ''}" id="notas-${item.id}">
       <div class="item-notas ${temObs ? 'visivel' : ''}" id="notas-${item.id}">
         <span class="rotulo-nota">📓 Anotações</span>
         ${temObs ? escaparHtml(item.observacoes) : '<em style="color:var(--texto-fraco);">Sem anotações. Clique em ✏️ para adicionar.</em>'}

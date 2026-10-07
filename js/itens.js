@@ -131,20 +131,47 @@ function renderFormDinamicoHome() {
         <label>Nome do tema</label>
         <input type="text" id="homeNome" placeholder="Ex: Limites e continuidade">
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+
+      <div class="campo">
+        <label>Semana (opcional)</label>
+        <input type="text" id="homeSemana" placeholder="Ex: Sem 3">
+      </div>
+
+      <div class="modo-data-toggle">
+        <label><input type="radio" name="homeModo" value="sem-data" checked onchange="toggleModoData('home')"> 🚫 Sem data</label>
+        <label><input type="radio" name="homeModo" value="unica" onchange="toggleModoData('home')"> 📅 Data única</label>
+        <label><input type="radio" name="homeModo" value="periodo" onchange="toggleModoData('home')"> 📆 Período de dias</label>
+      </div>
+
+      <div id="homeModoUnica" style="display:none;">
         <div class="campo">
-          <label>Semana</label>
-          <input type="text" id="homeSemana" placeholder="Ex: Sem 3">
-        </div>
-        <div class="campo">
-          <label>Prioridade</label>
-          <select id="homePrioridade">
-            <option value="baixa">🟢 Baixa</option>
-            <option value="media" selected>🟡 Média</option>
-            <option value="alta">🔴 Alta</option>
-          </select>
+          <label>Data do tema</label>
+          <input type="date" id="homeData">
         </div>
       </div>
+
+      <div id="homeModoPeriodo" style="display:none;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+          <div class="campo">
+            <label>Início</label>
+            <input type="date" id="homeDataInicio">
+          </div>
+          <div class="campo">
+            <label>Fim</label>
+            <input type="date" id="homeDataFim">
+          </div>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Prioridade</label>
+        <select id="homePrioridade">
+          <option value="baixa">🟢 Baixa</option>
+          <option value="media" selected>🟡 Média</option>
+          <option value="alta">🔴 Alta</option>
+        </select>
+      </div>
+
       <div class="campo">
         <label>Notas / Anotações (opcional)</label>
         <textarea id="homeObs" placeholder="Fórmulas, links, lembretes..."></textarea>

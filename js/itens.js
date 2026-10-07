@@ -769,3 +769,390 @@ function reRenderTudo() {
     renderPaginaDisciplina(disciplinaAberta);
   }
 }
+
+/* ============================================================
+   MODAL DE ADIÇÃO DE ITEM
+   ============================================================ */
+
+/** Estado do modal */
+let modalTipoAtual = "tema";
+let modalDisciplinaFixa = null;  // se definido, o campo disciplina não aparece
+let modalModoData = "sem-data";  // "sem-data" | "unica" | "periodo"
+
+/**
+ * Abre o modal para adicionar um item.
+ * @param {string} tipo - "tema" | "exame" | "atividade"
+ * @param {number|null} disciplinaFixaId - se passado, fixa a disciplina
+ */
+function abrirModalItem(tipo, disciplinaFixaId = null) {
+  modalTipoAtual = tipo;
+  modalDisciplinaFixa = disciplinaFixaId;
+  modalModoData = (tipo === "tema") ? "sem-data" : "unica";
+
+  const overlay = document.getElementById("modalOverlay");
+  const conteudo = document.getElementById("modalConteudo");
+  if (!overlay || !conteudo) return;
+
+  const icone = tipo === "tema" ? "📖" : tipo === "exame" ? "🎯" : "📝";
+  const titulo = tipo === "tema" ? "Novo tema de estudo"
+               : tipo === "exame" ? "Novo exame"
+               : "Nova atividade";
+
+  // Nome da disciplina fixa
+  let disciplinaInfo = "";
+  if (disciplinaFixaId) {
+    const d = disciplinas.find(x => x.id === disciplinaFixaId);
+    if (d) {
+      disciplinaInfo = `
+        <div class="modal-disciplina-info" style="
+          display: flex; align-items: center; gap: 0.5rem;
+          padding: 0.6rem 0.75rem; margin-bottom: 1rem;
+          background: var(--bg-suave); border-radius: var(--raio-xs);
+          font-size: 0.85rem;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: ${d.cor}; display: inline-block;"></span>
+          <span style="font-weight: 500;">${escaparHtml(d.nome)}</span>
+        </div>
+      `;
+    }
+  }
+
+  // Select de disciplinas (se não estiver fixa)
+  const opcoesDisciplinas = disciplinas.length === 0
+    ? '<option value="">⚠️ Cadastre uma disciplina primeiro</option>'
+    : '<option value="">— Sem disciplina —</option>' +
+      disciplinas.map(d => `<option value="${d.id}">${escaparHtml(d.nome)}</option>`).join("");
+
+  const campoDisciplina = modalDisciplinaFixa
+    ? disciplinaInfo
+    : `
+      <div class="campo">
+        <label>📚 Disciplina</label>
+        <select id="modalDisciplina" onchange="atualizarTemasModal()">
+          ${opcoesDisciplinas}
+        </select>
+      </div>
+    `;
+
+  // Conteúdo específico por tipo
+  let corpo = "";
+
+  if (tipo === "tema") {
+    corpo = `
+      <div class="campo">
+        <label>Nome do tema</label>
+        <input type="text" id="modalNome" placeholder="Ex: Limites e continuidade" autofocus>
+      </div>
+
+      <div class="campo">
+        <label>Semana (opcional)</label>
+        <input type="text" id="modalSemana" placeholder="Ex: Sem 3">
+      </div>
+
+      <div class="campo">
+        <label>Quando estudar (opcional)</label>
+        <div class="modo-data-toggle">
+          <label><input type="radio" name="modalModo" value="sem-data" checked onchange="mudarModoDataModal(this.value)"> 🚫 Sem data</label>
+          <label><input type="radio" name="modalModo" value="unica" onchange="mudarModoDataModal(this.value)"> 📅 Data</label>
+          <label><input type="radio" name="modalModo" value="periodo" onchange="mudarModoDataModal(this.value)"> 📆 Período</label>
+        </div>
+      </div>
+
+      <div id="modalModoUnica" style="display:none;">
+        <div class="campo">
+          <label>Data</label>
+          <input type="date" id="modalData">
+        </div>
+      </div>
+
+      <div id="modalModoPeriodo" style="display:none;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+          <div class="campo">
+            <label>Início</label>
+            <input type="date" id="modalDataInicio">
+          </div>
+          <div class="campo">
+            <label>Fim</label>
+            <input type="date" id="modalDataFim">
+          </div>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Prioridade</label>
+        <select id="modalPrioridade">
+          <option value="baixa">🟢 Baixa</option>
+          <option value="media" selected>🟡 Média</option>
+          <option value="alta">🔴 Alta</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label>Anotações (opcional)</label>
+        <textarea id="modalObs" placeholder="Fórmulas, links, lembretes..."></textarea>
+      </div>
+    `;
+  } else {
+    const labelData = tipo === "exame" ? "Data do exame" : "Data de entrega";
+    const labelTemas = tipo === "exame"
+      ? "📖 Temas cobrados (opcional)"
+      : "📖 Temas relacionados (opcional)";
+
+    corpo = `
+      <div class="campo">
+        <label>Nome ${tipo === "exame" ? "do exame" : "da atividade"}</label>
+        <input type="text" id="modalNome" placeholder="${tipo === "exame" ? "Ex: P1, Prova Final" : "Ex: Lista 1, Trabalho em grupo"}" autofocus>
+      </div>
+
+      <div class="modo-data-toggle">
+        <label><input type="radio" name="modalModo" value="unica" checked onchange="mudarModoDataModal(this.value)"> 📅 Data única</label>
+        <label><input type="radio" name="modalModo" value="periodo" onchange="mudarModoDataModal(this.value)"> 📆 Período</label>
+      </div>
+
+      <div id="modalModoUnica">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+          <div class="campo">
+            <label>${labelData}</label>
+            <input type="date" id="modalData">
+          </div>
+          <div class="campo">
+            <label>Prioridade</label>
+            <select id="modalPrioridade">
+              <option value="baixa">🟢 Baixa</option>
+              <option value="media" selected>🟡 Média</option>
+              <option value="alta">🔴 Alta</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div id="modalModoPeriodo" style="display:none;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+          <div class="campo">
+            <label>Início</label>
+            <input type="date" id="modalDataInicio">
+          </div>
+          <div class="campo">
+            <label>Fim</label>
+            <input type="date" id="modalDataFim">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Prioridade</label>
+          <select id="modalPrioridadePeriodo">
+            <option value="baixa">🟢 Baixa</option>
+            <option value="media" selected>🟡 Média</option>
+            <option value="alta">🔴 Alta</option>
+          </select>
+        </div>
+      </div>
+
+      ${!modalDisciplinaFixa ? `
+        <div class="campo">
+          <label>${labelTemas}</label>
+          <div id="modalTemasContainer">
+            <p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">
+              Escolha uma disciplina acima para ver os temas.
+            </p>
+          </div>
+        </div>
+      ` : `
+        <div class="campo">
+          <label>${labelTemas}</label>
+          <div id="modalTemasContainer">
+            ${renderTemasModalCheckboxes(modalDisciplinaFixa)}
+          </div>
+        </div>
+      `}
+
+      <div class="campo">
+        <label>Anotações (opcional)</label>
+        <textarea id="modalObs" placeholder="Conteúdo, sala, dicas..."></textarea>
+      </div>
+    `;
+  }
+
+  conteudo.innerHTML = `
+    <div class="modal-header">
+      <h3><span class="modal-icone">${icone}</span>${titulo}</h3>
+      <button class="modal-fechar" onclick="fecharModal()" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      ${campoDisciplina}
+      ${corpo}
+    </div>
+    <div class="modal-footer">
+      <button class="btn neutro" onclick="fecharModal()">Cancelar</button>
+      <button class="btn" onclick="salvarItemModal()">
+        ${icone} Adicionar ${tipo}
+      </button>
+    </div>
+  `;
+
+  // Sincroniza prioridades dos dois selects
+  setTimeout(() => {
+    const sU = document.getElementById("modalPrioridade");
+    const sP = document.getElementById("modalPrioridadePeriodo");
+    if (sU && sP) {
+      sU.addEventListener("change", () => sP.value = sU.value);
+      sP.addEventListener("change", () => sU.value = sP.value);
+    }
+  }, 0);
+
+  overlay.classList.add("aberto");
+  document.body.classList.add("modal-aberto");
+
+  // Foco no primeiro campo
+  setTimeout(() => {
+    document.getElementById("modalNome")?.focus();
+  }, 100);
+}
+
+/**
+ * Fecha o modal.
+ */
+function fecharModal() {
+  const overlay = document.getElementById("modalOverlay");
+  if (!overlay) return;
+  overlay.classList.remove("aberto");
+  document.body.classList.remove("modal-aberto");
+
+  setTimeout(() => {
+    document.getElementById("modalConteudo").innerHTML = "";
+  }, 250);
+}
+
+/**
+ * Fecha o modal ao clicar fora (no overlay).
+ */
+function fecharModalSeFora(event) {
+  if (event.target.id === "modalOverlay") fecharModal();
+}
+
+/**
+ * Alterna o modo de data no modal.
+ */
+function mudarModoDataModal(modo) {
+  modalModoData = modo;
+  const unica = document.getElementById("modalModoUnica");
+  const periodo = document.getElementById("modalModoPeriodo");
+  if (unica) unica.style.display = modo === "unica" ? "block" : "none";
+  if (periodo) periodo.style.display = modo === "periodo" ? "block" : "none";
+}
+
+/**
+ * Atualiza os checkboxes de temas no modal.
+ */
+function atualizarTemasModal() {
+  const cont = document.getElementById("modalTemasContainer");
+  if (!cont) return;
+  const discId = parseInt(document.getElementById("modalDisciplina")?.value || "0");
+  if (!discId) {
+    cont.innerHTML = '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Escolha uma disciplina acima.</p>';
+    return;
+  }
+  cont.innerHTML = renderTemasModalCheckboxes(discId);
+}
+
+/**
+ * Gera os checkboxes de temas de uma disciplina.
+ */
+function renderTemasModalCheckboxes(discId) {
+  const temas = itens.filter(i => i.disciplinaId === discId && i.tipo === "tema");
+  if (temas.length === 0) {
+    return '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Nenhum tema cadastrado nesta disciplina ainda.</p>';
+  }
+  return `<div class="check-temas">
+    ${temas.map(t => `
+      <label>
+        <input type="checkbox" value="${t.id}" class="modal-tema-check">
+        ${escaparHtml(t.nome)} ${t.semana ? `<small style="color:var(--texto-fraco);">(${escaparHtml(t.semana)})</small>` : ""}
+      </label>
+    `).join("")}
+  </div>`;
+}
+
+/**
+ * Salva o item criado no modal.
+ */
+function salvarItemModal() {
+  const nome = (document.getElementById("modalNome")?.value || "").trim();
+  if (!nome) {
+    mostrarToast("Digite o nome do item.", "aviso");
+    document.getElementById("modalNome")?.focus();
+    return;
+  }
+
+  // Disciplina
+  let disciplinaId;
+  if (modalDisciplinaFixa) {
+    disciplinaId = modalDisciplinaFixa;
+  } else {
+    const val = document.getElementById("modalDisciplina")?.value || "";
+    disciplinaId = val ? parseInt(val) : null;
+  }
+
+  // Prioridade e datas
+  const radio = document.querySelector('input[name="modalModo"]:checked');
+  const modo = radio ? radio.value : "sem-data";
+
+  let data = "", dataInicio = "", dataFim = "";
+  let prioridade = "media";
+
+  if (modo === "unica") {
+    data = document.getElementById("modalData")?.value || "";
+    prioridade = document.getElementById("modalPrioridade")?.value || "media";
+  } else if (modo === "periodo") {
+    dataInicio = document.getElementById("modalDataInicio")?.value || "";
+    dataFim = document.getElementById("modalDataFim")?.value || "";
+    prioridade = document.getElementById("modalPrioridadePeriodo")?.value
+              || document.getElementById("modalPrioridade")?.value
+              || "media";
+
+    if (!dataInicio || !dataFim) {
+      mostrarToast("Preencha início e fim do período.", "aviso");
+      return;
+    }
+    if (dataFim < dataInicio) {
+      mostrarToast("Data final antes da inicial.", "aviso");
+      return;
+    }
+  } else {
+    // sem-data (tema sem data)
+    prioridade = document.getElementById("modalPrioridade")?.value || "media";
+  }
+
+  const semana = (document.getElementById("modalSemana")?.value || "").trim();
+  const obs = (document.getElementById("modalObs")?.value || "").trim();
+
+  // Temas vinculados
+  const temasVinculados = [];
+  document.querySelectorAll(".modal-tema-check:checked").forEach(c => {
+    temasVinculados.push(parseInt(c.value));
+  });
+
+  itens.push(criarItem({
+    disciplinaId,
+    nome,
+    tipo: modalTipoAtual,
+    data,
+    dataInicio,
+    dataFim,
+    semana,
+    prioridade,
+    observacoes: obs,
+    temasVinculados: modalTipoAtual === "tema" ? [] : temasVinculados
+  }));
+
+  salvar();
+  fecharModal();
+  reRenderTudo();
+  mostrarToast("✅ Item adicionado!", "sucesso");
+}
+
+// Fecha modal com ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const overlay = document.getElementById("modalOverlay");
+    if (overlay?.classList.contains("aberto")) fecharModal();
+  }
+});

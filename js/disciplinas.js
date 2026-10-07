@@ -298,22 +298,26 @@ function renderPaginaDisciplina(id, manterFoco = false) {
              oninput="atualizarBusca(this.value)">
     </div>
 
-    <div class="add-panel">
+     <div class="add-panel">
       <h3>➕ Adicionar em <em style="color:${d.cor};">${escaparHtml(d.nome)}</em></h3>
 
-      <div class="tipo-selector" id="tipoSelectorDisc">
-        <button data-tipo="tema" onclick="selecionarTipoDisc('tema')" class="${tipoSelecionadoDisc === 'tema' ? 'ativo' : ''}">
-          <span class="icone">📖</span><span>Tema de estudo</span>
+      <div class="add-tipo-grid">
+        <button class="add-tipo-card" data-tipo="tema" onclick="abrirModalItem('tema', ${d.id})">
+          <span class="add-tipo-icone">📖</span>
+          <span class="add-tipo-label">Tema de estudo</span>
+          <span class="add-tipo-desc">Conteúdo a estudar</span>
         </button>
-        <button data-tipo="exame" onclick="selecionarTipoDisc('exame')" class="${tipoSelecionadoDisc === 'exame' ? 'ativo' : ''}">
-          <span class="icone">🎯</span><span>Exame / Prova</span>
+        <button class="add-tipo-card" data-tipo="exame" onclick="abrirModalItem('exame', ${d.id})">
+          <span class="add-tipo-icone">🎯</span>
+          <span class="add-tipo-label">Exame / Prova</span>
+          <span class="add-tipo-desc">Avaliação com data</span>
         </button>
-        <button data-tipo="atividade" onclick="selecionarTipoDisc('atividade')" class="${tipoSelecionadoDisc === 'atividade' ? 'ativo' : ''}">
-          <span class="icone">📝</span><span>Atividade / Trabalho</span>
+        <button class="add-tipo-card" data-tipo="atividade" onclick="abrirModalItem('atividade', ${d.id})">
+          <span class="add-tipo-icone">📝</span>
+          <span class="add-tipo-label">Atividade / Trabalho</span>
+          <span class="add-tipo-desc">Tarefa com prazo</span>
         </button>
       </div>
-
-      <div id="formDinamicoDisc"></div>
     </div>
 
     ${renderSecao("📖 Temas de Estudo", temas, temasTodos, examesTodos, atividadesTodos, d.cor, temasTodos.length)}

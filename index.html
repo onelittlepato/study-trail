@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Study Trail — organizador de estudos universitários, offline e sem dependências.">
+  <meta name="theme-color" content="#4a6cf7">
+  <title>Study Trail 🎓</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header>
+    <button class="btn-tema" id="btnTema" onclick="alternarTema()" title="Alternar tema" aria-label="Alternar tema">🌙</button>
+    <h1>🎓 Study Trail</h1>
+    <p>Organize suas disciplinas, temas, exames e atividades</p>
+  </header>
+
+  <nav id="navPrincipal">
+    <button class="ativo" onclick="mostrarSecao('inicio', this)">🏠 Início</button>
+    <button onclick="mostrarSecao('semana', this)">📅 Semana</button>
+    <button onclick="mostrarSecao('disciplinas', this)">📚 Disciplinas</button>
+    <button onclick="mostrarSecao('notas', this)">📊 Notas</button>
+  </nav>
+
+  <!-- ================= INÍCIO ================= -->
+  <section id="inicio" class="secao ativa">
+
+    <!-- Barra de ações: backup + atalhos -->
+    <div class="topbar">
+      <div class="topbar-esquerda">
+        <button class="btn neutro pequeno" onclick="exportarDados()" title="Exportar backup dos dados">📤 Exportar</button>
+        <button class="btn neutro pequeno" onclick="document.getElementById('inputImport').click()" title="Importar backup">📥 Importar</button>
+        <input type="file" id="inputImport" accept="application/json" style="display:none" onchange="importarDados(this)">
+      </div>
+      <div class="topbar-direita">
+        <span class="atalho" id="atalhoHoje" title="Atalho: vá para a aba Semana, semana atual" onclick="irParaSemanaAtual()">⌨️ Hoje</span>
+      </div>
+    </div>
+
+    <div id="hojeContainer"></div>
+    <div id="proximosContainer"></div>
+
+    <!-- Formulário de adição rápida -->
+    <div class="add-panel">
+      <h3>➕ Adicionar nova entrada</h3>
+      <div class="tipo-selector" id="tipoSelectorHome">
+        <button data-tipo="tema" onclick="selecionarTipoHome('tema')" class="ativo">
+          <span class="icone">📖</span><span>Tema de estudo</span>
+        </button>
+        <button data-tipo="exame" onclick="selecionarTipoHome('exame')">
+          <span class="icone">🎯</span><span>Exame / Prova</span>
+        </button>
+        <button data-tipo="atividade" onclick="selecionarTipoHome('atividade')">
+          <span class="icone">📝</span><span>Atividade / Trabalho</span>
+        </button>
+      </div>
+      <div id="formDinamicoHome"></div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="grid-cards" id="gridStats"></div>
+
+    <!-- Progresso -->
+    <div class="card">
+      <h2>📈 Progresso do Semestre</h2>
+      <div class="barra-progresso">
+        <div class="preenchimento" id="barraSemestre" style="width: 0%">0%</div>
+      </div>
+      <p id="textoProgresso" class="texto-centro-fraco"></p>
+    </div>
+
+    <!-- Atrasadas (render dinâmico) -->
+    <div id="atrasadasContainer"></div>
+
+    <!-- Resumo por disciplina -->
+    <div class="card">
+      <h2>📚 Por Disciplina</h2>
+      <div id="resumoDisciplinas"></div>
+    </div>
+
+    <!-- Timeline / Calendário -->
+    <div class="card">
+      <h2>📅 Timeline do Semestre</h2>
+      <div class="view-toggle" id="viewToggle">
+        <button data-view="timeline" class="ativo" onclick="mudarView('timeline')">📋 Timeline</button>
+        <button data-view="calendario" onclick="mudarView('calendario')">🗓️ Calendário</button>
+      </div>
+
+      <div id="viewTimeline">
+        <div id="timeline"></div>
+      </div>
+
+      <div id="viewCalendario" style="display:none">
+        <div class="cal-controle">
+          <button class="btn neutro pequeno" onclick="mudarMesCal(-1)">⬅️</button>
+          <h3 id="calTitulo">—</h3>
+          <button class="btn neutro pequeno" onclick="mudarMesCal(1)">➡️</button>
+        </div>
+        <div class="cal-legenda">
+          <span><span class="cal-bolinha" style="background:#8e44ad"></span>Exame</span>
+          <span><span class="cal-bolinha" style="background:#1565c0"></span>Atividade</span>
+          <span><span class="cal-bolinha" style="background:#2e7d32"></span>Tema</span>
+          <span><span class="cal-bolinha" style="background:#d35400"></span>Período</span>
+        </div>
+        <div id="calGrid" class="cal-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SEMANA ================= -->
+  <section id="semana" class="secao">
+    <div class="card">
+      <div class="semana-controle">
+        <button class="btn neutro" onclick="mudarSemana(-1)">⬅️ Anterior</button>
+        <h2 id="tituloSemana">Semana</h2>
+        <button class="btn neutro" onclick="mudarSemana(1)">Próxima ➡️</button>
+      </div>
+      <div class="texto-centro" style="margin-bottom:1rem;">
+        <button class="btn" onclick="irParaHoje()">🎯 Ir para hoje</button>
+      </div>
+      <div class="semana-resumo" id="resumoSemana"></div>
+    </div>
+    <div id="diasSemana"></div>
+    <div class="card" id="cardSemData" style="display:none;">
+      <h2>📌 Sem data definida</h2>
+      <ul class="lista" id="listaSemData"></ul>
+    </div>
+  </section>
+
+  <!-- ================= DISCIPLINAS ================= -->
+  <section id="disciplinas" class="secao">
+    <div class="card">
+      <h2>Nova Disciplina</h2>
+      <div class="form-linha">
+        <input type="text" id="discNome" placeholder="Ex: Cálculo I">
+        <input type="text" id="discProfessor" placeholder="Professor (opcional)">
+        <input type="text" id="discHorario" placeholder="Ex: Seg 10h-12h">
+        <input type="text" id="discSemestre" placeholder="Ex: 2025.2" value="2025.2">
+      </div>
+      <div class="campo" style="margin-bottom:1rem;">
+        <label>🎨 Cor da disciplina</label>
+        <div class="paleta-cores" id="paletaNova"></div>
+      </div>
+      <button class="btn" onclick="adicionarDisciplina()">Adicionar</button>
+    </div>
+    <div class="grid-disciplinas" id="gridDisciplinas"></div>
+  </section>
+
+  <!-- ================= PÁGINA DA DISCIPLINA ================= -->
+  <section id="paginaDisciplina" class="secao">
+    <button class="btn-voltar" onclick="voltarParaDisciplinas()">← Voltar para Disciplinas</button>
+    <div id="conteudoDisciplina"></div>
+  </section>
+
+  <!-- ================= NOTAS ================= -->
+  <section id="notas" class="secao">
+    <div class="card">
+      <h2>Adicionar Nota</h2>
+      <div class="form-linha">
+        <select id="notaDisciplina"></select>
+        <input type="text" id="notaAvaliacao" placeholder="Ex: P1, Trabalho">
+        <input type="number" id="notaValor" placeholder="Nota (0-10)" step="0.1" min="0" max="10">
+        <input type="number" id="notaPeso" placeholder="Peso" value="1" min="1" step="1">
+        <button class="btn" onclick="adicionarNota()">Adicionar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Minhas Notas</h2>
+      <div id="listaNotas"></div>
+    </div>
+  </section>
+
+  <!-- ================= TOAST ================= -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/tema.js"></script>
+  <script src="js/anexos.js"></script>
+  <script src="js/itens.js"></script>
+  <script src="js/disciplinas.js"></script>
+  <script src="js/semana.js"></script>
+  <script src="js/notas.js"></script>
+  <script src="js/inicio.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

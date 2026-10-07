@@ -23,18 +23,14 @@ let notas = [];
 /* Estado de UI (não persistido) */
 let semanaAtual = getSegundaDaSemana(new Date());
 let disciplinaAberta = null;
-let tipoSelecionadoHome = "tema";
 let temaAberto = null;
+let tipoSelecionadoHome = "tema";
 let tipoSelecionadoDisc = "tema";
 let buscaDisciplina = "";
-let viewTimeline = "timeline";     // "timeline" | "calendario"
-let mesCalendario = new Date();    // mês visível no calendário
+let diasProximos = 7;   // 7 | 30 | "semestre"
 
 /* ============ PERSISTÊNCIA ============ */
 
-/**
- * Salva o estado atual no localStorage.
- */
 function salvar() {
   try {
     localStorage.setItem(STORAGE_KEYS.disciplinas, JSON.stringify(disciplinas));
@@ -49,9 +45,6 @@ function salvar() {
   }
 }
 
-/**
- * Carrega o estado do localStorage.
- */
 function carregar() {
   try {
     disciplinas = JSON.parse(localStorage.getItem(STORAGE_KEYS.disciplinas)) || [];
@@ -68,12 +61,7 @@ function carregar() {
   normalizarDados();
 }
 
-/**
- * Normaliza todos os dados após o carregamento,
- * garantindo que todos os campos existam.
- */
 function normalizarDados() {
-  // Disciplinas
   disciplinas.forEach(d => {
     if (!d.cor) d.cor = PALETA_CORES[0];
     if (d.professor === undefined) d.professor = "";
@@ -81,40 +69,28 @@ function normalizarDados() {
     if (d.semestre === undefined) d.semestre = "";
   });
 
-  // Itens
   itens.forEach(i => {
     if (!i.temasVinculados) i.temasVinculados = [];
     if (i.observacoes === undefined) i.observacoes = "";
     if (!i.anexos) i.anexos = [];
     if (i.tipo === undefined) i.tipo = "atividade";
-
-    // Compatibilidade período <-> data
     if (i.dataInicio === undefined) i.dataInicio = "";
     if (i.dataFim === undefined) i.dataFim = "";
     if (i.data === undefined) i.data = "";
   });
 
-  // Notas
   notas.forEach(n => {
     if (!n.peso || n.peso < 1) n.peso = 1;
   });
 }
 
 /* ============ MIGRAÇÕES ============ */
-/**
- * Migra dados de versões anteriores. Cada bloco só roda uma vez.
- */
 function migrarSeNecessario() {
   const versaoSalva = parseInt(localStorage.getItem(STORAGE_KEYS.versao) || "0");
-
   if (versaoSalva === VERSAO_ATUAL) return;
 
   console.log(`[Storage] Migrando da versão ${versaoSalva} para ${VERSAO_ATUAL}`);
 
-  // v0/v1 → v2: itens antigos ganham campos de período vazios
-  // (já coberto em normalizarDados, mas deixamos hook pra futuras migrações)
-
-  // Versões antigas usavam chaves diferentes (compatibilidade)
   const antigas = {
     disciplinas: "disciplinas",
     itens: "itens",
@@ -122,21 +98,15 @@ function migrarSeNecessario() {
     tarefas: "tarefas"
   };
 
-  // Migra disciplinas antigas
   if (!localStorage.getItem(STORAGE_KEYS.disciplinas)) {
     const dOld = localStorage.getItem(antigas.disciplinas);
-    if (dOld) {
-      localStorage.setItem(STORAGE_KEYS.disciplinas, dOld);
-      console.log("[Storage] Disciplinas migradas da chave antiga");
-    }
+    if (dOld) localStorage.setItem(STORAGE_KEYS.disciplinas, dOld);
   }
 
-  // Migra itens antigos OU tarefas antigas
   if (!localStorage.getItem(STORAGE_KEYS.itens)) {
     const iOld = localStorage.getItem(antigas.itens);
     if (iOld) {
       localStorage.setItem(STORAGE_KEYS.itens, iOld);
-      console.log("[Storage] Itens migrados da chave antiga");
     } else {
       const tarefasAntigas = JSON.parse(localStorage.getItem(antigas.tarefas) || "null");
       if (Array.isArray(tarefasAntigas) && tarefasAntigas.length > 0) {
@@ -156,27 +126,19 @@ function migrarSeNecessario() {
           anexos: []
         }));
         localStorage.setItem(STORAGE_KEYS.itens, JSON.stringify(convertidas));
-        console.log(`[Storage] ${convertidas.length} tarefas antigas migradas`);
       }
     }
   }
 
-  // Migra notas antigas
   if (!localStorage.getItem(STORAGE_KEYS.notas)) {
     const nOld = localStorage.getItem(antigas.notas);
-    if (nOld) {
-      localStorage.setItem(STORAGE_KEYS.notas, nOld);
-      console.log("[Storage] Notas migradas da chave antiga");
-    }
+    if (nOld) localStorage.setItem(STORAGE_KEYS.notas, nOld);
   }
 
   localStorage.setItem(STORAGE_KEYS.versao, String(VERSAO_ATUAL));
 }
 
 /* ============ RESET ============ */
-/**
- * Apaga TUDO. Uso: resetTotal() no console do navegador.
- */
 function resetTotal() {
   if (!confirm("⚠️ Isso apaga TODOS os dados. Tem certeza?")) return;
   Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
@@ -184,11 +146,8 @@ function resetTotal() {
   location.reload();
 }
 
-/* ============ EXPORT / IMPORT (backup) ============ */
+/* ============ EXPORT / IMPORT ============ */
 
-/**
- * Exporta todo o estado como arquivo JSON.
- */
 function exportarDados() {
   const dados = {
     versao: VERSAO_ATUAL,
@@ -197,10 +156,7 @@ function exportarDados() {
     itens,
     notas
   };
-  const blob = new Blob(
-    [JSON.stringify(dados, null, 2)],
-    { type: "application/json" }
-  );
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   const dataHoje = formatarISO(new Date());
@@ -213,10 +169,6 @@ function exportarDados() {
   mostrarToast("📤 Backup exportado!", "sucesso");
 }
 
-/**
- * Importa backup a partir de um <input type="file">.
- * @param {HTMLInputElement} input - input do tipo file
- */
 function importarDados(input) {
   const file = input.files && input.files[0];
   if (!file) return;
@@ -225,12 +177,11 @@ function importarDados(input) {
   reader.onload = (e) => {
     try {
       const dados = JSON.parse(e.target.result);
-
       if (!dados.disciplinas || !dados.itens || !dados.notas) {
         throw new Error("Arquivo de backup inválido.");
       }
 
-      const confirmar = window.confirm(
+      const ok = window.confirm(
         `⚠️ Isso vai SUBSTITUIR seus dados atuais por:\n\n` +
         `• ${dados.disciplinas.length} disciplina(s)\n` +
         `• ${dados.itens.length} item(ns)\n` +
@@ -238,7 +189,7 @@ function importarDados(input) {
         `Continuar?`
       );
 
-      if (!confirmar) {
+      if (!ok) {
         input.value = "";
         return;
       }

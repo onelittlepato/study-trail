@@ -1201,3 +1201,38 @@ html[data-tema="escuro"] .tag-chip {
   border-color: var(--primaria);
   color: var(--primaria);
 }
+
+/* ============ PÁGINA DO TEMA ============ */
+.tema-header {
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+.tema-header h2 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+/* Dica visual nos cards de tema */
+.item-card.tema {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.item-card.tema:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px var(--sombra);
+}
+
+/* Estado ativo do seletor de tipo (página do tema) */
+#tipoSelectorTema button.ativo[data-tipo="exame"] {
+  background: #f3e5ff; border-color: #8e44ad; color: #8e44ad;
+}
+#tipoSelectorTema button.ativo[data-tipo="atividade"] {
+  background: #e3f2fd; border-color: #1565c0; color: #1565c0;
+}
+html[data-tema="escuro"] #tipoSelectorTema button.ativo[data-tipo="exame"] {
+  background: #3a1f4a; color: #d4a5ff; border-color: #d4a5ff;
+}
+html[data-tema="escuro"] #tipoSelectorTema button.ativo[data-tipo="atividade"] {
+  background: #1f2f4a; color: #90bdff; border-color: #90bdff;
+}

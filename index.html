@@ -26,7 +26,6 @@
   <!-- ================= INÍCIO ================= -->
   <section id="inicio" class="secao ativa">
 
-    <!-- Barra de ações: backup + atalhos -->
     <div class="topbar">
       <div class="topbar-esquerda">
         <button class="btn neutro pequeno" onclick="exportarDados()" title="Exportar backup dos dados">📤 Exportar</button>
@@ -34,14 +33,13 @@
         <input type="file" id="inputImport" accept="application/json" style="display:none" onchange="importarDados(this)">
       </div>
       <div class="topbar-direita">
-        <span class="atalho" id="atalhoHoje" title="Atalho: vá para a aba Semana, semana atual" onclick="irParaSemanaAtual()">⌨️ Hoje</span>
+        <span class="atalho" onclick="irParaSemanaAtual()" title="Ir para a semana atual">⌨️ Hoje</span>
       </div>
     </div>
 
     <div id="hojeContainer"></div>
     <div id="proximosContainer"></div>
 
-    <!-- Formulário de adição rápida -->
     <div class="add-panel">
       <h3>➕ Adicionar nova entrada</h3>
       <div class="tipo-selector" id="tipoSelectorHome">
@@ -58,10 +56,8 @@
       <div id="formDinamicoHome"></div>
     </div>
 
-    <!-- Estatísticas -->
     <div class="grid-cards" id="gridStats"></div>
 
-    <!-- Progresso -->
     <div class="card">
       <h2>📈 Progresso do Semestre</h2>
       <div class="barra-progresso">
@@ -70,42 +66,13 @@
       <p id="textoProgresso" class="texto-centro-fraco"></p>
     </div>
 
-    <!-- Atrasadas (render dinâmico) -->
     <div id="atrasadasContainer"></div>
 
-    <!-- Resumo por disciplina -->
     <div class="card">
       <h2>📚 Por Disciplina</h2>
       <div id="resumoDisciplinas"></div>
     </div>
 
-    <!-- Timeline / Calendário -->
-    <div class="card">
-      <h2>📅 Timeline do Semestre</h2>
-      <div class="view-toggle" id="viewToggle">
-        <button data-view="timeline" class="ativo" onclick="mudarView('timeline')">📋 Timeline</button>
-        <button data-view="calendario" onclick="mudarView('calendario')">🗓️ Calendário</button>
-      </div>
-
-      <div id="viewTimeline">
-        <div id="timeline"></div>
-      </div>
-
-      <div id="viewCalendario" style="display:none">
-        <div class="cal-controle">
-          <button class="btn neutro pequeno" onclick="mudarMesCal(-1)">⬅️</button>
-          <h3 id="calTitulo">—</h3>
-          <button class="btn neutro pequeno" onclick="mudarMesCal(1)">➡️</button>
-        </div>
-        <div class="cal-legenda">
-          <span><span class="cal-bolinha" style="background:#8e44ad"></span>Exame</span>
-          <span><span class="cal-bolinha" style="background:#1565c0"></span>Atividade</span>
-          <span><span class="cal-bolinha" style="background:#2e7d32"></span>Tema</span>
-          <span><span class="cal-bolinha" style="background:#d35400"></span>Período</span>
-        </div>
-        <div id="calGrid" class="cal-grid"></div>
-      </div>
-    </div>
   </section>
 
   <!-- ================= SEMANA ================= -->
@@ -153,7 +120,7 @@
     <div id="conteudoDisciplina"></div>
   </section>
 
-    <!-- ================= PÁGINA DO TEMA ================= -->
+  <!-- ================= PÁGINA DO TEMA ================= -->
   <section id="paginaTema" class="secao">
     <button class="btn-voltar" onclick="voltarParaDisciplina()">← Voltar para a disciplina</button>
     <div id="conteudoTema"></div>
@@ -177,16 +144,15 @@
     </div>
   </section>
 
-  <!-- ================= TOAST ================= -->
   <div id="toast" class="toast"></div>
 
-  <!-- ================= SCRIPTS ================= -->
   <script src="js/utils.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/tema.js"></script>
   <script src="js/anexos.js"></script>
   <script src="js/itens.js"></script>
   <script src="js/disciplinas.js"></script>
+  <script src="js/tema-pagina.js"></script>
   <script src="js/semana.js"></script>
   <script src="js/notas.js"></script>
   <script src="js/inicio.js"></script>

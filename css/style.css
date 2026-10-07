@@ -1506,3 +1506,160 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   .home-disc-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   .grid-disciplinas { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 }
+
+/* ============ ADD TIPO CARDS (Home) ============ */
+.add-tipo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+.add-tipo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all var(--transicao);
+  color: var(--texto);
+}
+.add-tipo-card:hover {
+  border-color: var(--texto-fraco);
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-hover);
+}
+.add-tipo-card .add-tipo-icone {
+  font-size: 1.5rem;
+  margin-bottom: 0.15rem;
+}
+.add-tipo-card .add-tipo-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.add-tipo-card .add-tipo-desc {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+.add-tipo-card[data-tipo="tema"]:hover  { border-top: 3px solid var(--cor-tema); }
+.add-tipo-card[data-tipo="exame"]:hover { border-top: 3px solid var(--cor-exame); }
+.add-tipo-card[data-tipo="atividade"]:hover { border-top: 3px solid var(--cor-atividade); }
+
+/* ============ MODAL ============ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 3rem 1rem 2rem;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.modal-overlay.aberto {
+  opacity: 1;
+  pointer-events: auto;
+}
+html[data-tema="escuro"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 560px;
+  padding: 0;
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 3rem;
+}
+.modal-overlay.aberto .modal {
+  transform: translateY(0) scale(1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--borda);
+}
+.modal-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--texto);
+}
+.modal-header .modal-icone {
+  font-size: 1.15rem;
+}
+.modal-fechar {
+  background: transparent;
+  border: none;
+  color: var(--texto-fraco);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--raio-xs);
+  transition: all var(--transicao);
+  line-height: 1;
+}
+.modal-fechar:hover {
+  background: var(--bg-suave);
+  color: var(--texto);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--borda);
+  background: var(--bg-suave);
+  border-radius: 0 0 var(--raio) var(--raio);
+  flex-wrap: wrap;
+}
+
+/* Ajustes dos campos dentro do modal */
+.modal .campo { margin-bottom: 1rem; }
+.modal .campo:last-of-type { margin-bottom: 0; }
+.modal .modo-data-toggle { margin-bottom: 1rem; }
+
+/* Previne scroll do body quando modal aberto */
+body.modal-aberto {
+  overflow: hidden;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .modal-overlay { padding: 1rem 0.75rem; }
+  .modal { max-width: 100%; margin-bottom: 1rem; }
+  .modal-header { padding: 1rem 1.15rem; }
+  .modal-body { padding: 1.15rem; }
+  .modal-footer { padding: 0.9rem 1.15rem; }
+  .modal-footer button { flex: 1; }
+  .add-tipo-grid { grid-template-columns: 1fr; }
+}

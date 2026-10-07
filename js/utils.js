@@ -259,5 +259,14 @@ function compararDataPrioridade(a, b) {
 /* ============ LOG DE ERROS (dev) ============ */
 
 window.addEventListener("error", (e) => {
+
+   /**
+ * Adiciona N dias a uma data ISO, retorna ISO.
+ */
+function adicionarDia(iso, n) {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return formatarISO(d);
+}
   console.error("[Study Trail] Erro:", e.error || e.message);
 });

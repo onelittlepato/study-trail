@@ -363,46 +363,72 @@ function renderAtrasadas() {
   `;
 }
 
-/* ============ RESUMO POR DISCIPLINA ============ */
+/* ============ DISCIPLINAS NA HOME (grid de cards) ============ */
 
 function renderResumoDisciplinas() {
   const cont = document.getElementById("resumoDisciplinas");
   if (!cont) return;
 
   if (disciplinas.length === 0) {
-    cont.innerHTML = '<p class="vazio">Cadastre disciplinas para vê-las aqui.</p>';
+    cont.innerHTML = `
+      <div class="home-disc-vazio">
+        <p>📚 Nenhuma disciplina ainda.</p>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">
+          Vá em <strong>📚 Disciplinas</strong> para criar a primeira.
+        </p>
+      </div>
+    `;
     return;
   }
 
-  cont.innerHTML = disciplinas.map(d => {
-    const di = itens.filter(i => i.disciplinaId === d.id);
-    const pend = di.filter(i => !i.concluida).length;
-    const ex = di.filter(i => i.tipo === "exame").length;
-    const at = di.filter(i => i.tipo === "atividade").length;
-    const te = di.filter(i => i.tipo === "tema").length;
+  cont.innerHTML = `<div class="home-disc-grid">
+    ${disciplinas.map(d => {
+      const di = itens.filter(i => i.disciplinaId === d.id);
+      const pendentes = di.filter(i => !i.concluida).length;
+      const total = di.length;
+      const concluidas = total - pendentes;
+      const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
 
-    const rm = typeof resumoMediaDisciplina === "function"
-      ? resumoMediaDisciplina(d.id)
-      : { texto: "—", classe: "" };
+      const exames = di.filter(i => i.tipo === "exame" && !i.concluida).length;
+      const atividades = di.filter(i => i.tipo === "atividade" && !i.concluida).length;
 
-    return `
-      <div class="item-timeline"
-           style="cursor:pointer; border-left:4px solid ${d.cor};
-                  padding-left:0.8rem;"
-           onclick="abrirDisciplina(${d.id})">
-        <span class="data-tag"
-              style="background:${d.cor}22; color:${d.cor};
-                     min-width:auto; padding:0.3rem 0.7rem;">📘</span>
-        <div class="info">
-          <strong>${escaparHtml(d.nome)}</strong>
-          <small>🎯 ${ex} • 📝 ${at} • 📖 ${te} • ⏳ ${pend} pendente(s)</small>
+      const rm = typeof resumoMediaDisciplina === "function"
+        ? resumoMediaDisciplina(d.id)
+        : { texto: "—", classe: "sem-nota" };
+
+      const atrasados = di.filter(i => itemEhAtrasado(i)).length;
+
+      return `
+        <div class="home-disc-card" style="--cor-disc:${d.cor};" onclick="abrirDisciplina(${d.id})">
+          <div class="home-disc-topo">
+            <div class="home-disc-icone" style="background:${d.cor}22; color:${d.cor};">
+              📘
+            </div>
+            <div class="home-disc-info">
+              <h3>${escaparHtml(d.nome)}</h3>
+              ${d.professor ? `<p class="home-disc-prof">👤 ${escaparHtml(d.professor)}</p>` : ""}
+            </div>
+            <div class="home-disc-media ${rm.classe}">${rm.texto}</div>
+          </div>
+
+          <div class="home-disc-progresso">
+            <div class="home-disc-progresso-barra">
+              <div class="home-disc-progresso-fill" style="width:${progresso}%; background:${d.cor};"></div>
+            </div>
+            <span class="home-disc-progresso-texto">${concluidas}/${total}</span>
+          </div>
+
+          <div class="home-disc-stats">
+            <span title="Exames pendentes">🎯 ${exames}</span>
+            <span title="Atividades pendentes">📝 ${atividades}</span>
+            ${atrasados > 0
+              ? `<span class="home-disc-alerta" title="Itens atrasados">⚠️ ${atrasados}</span>`
+              : `<span class="home-disc-ok" title="Sem atrasos">✓ em dia</span>`}
+          </div>
         </div>
-        <span class="media-mini ${rm.classe}" style="font-size:1.1rem;">
-          ${rm.texto}
-        </span>
-      </div>
-    `;
-  }).join("");
+      `;
+    }).join("")}
+  </div>`;
 }
 
 /* ============ ORQUESTRADOR ============ */

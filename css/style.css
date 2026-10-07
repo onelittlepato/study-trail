@@ -1,14 +1,13 @@
 /* ============================================================
    STUDY TRAIL — style.css
-   Design: minimalista · Linear + Notion inspired
+   Design: minimalista · fluxo contínuo · sem cards
    ============================================================ */
 
 :root {
-  /* Cores — tema claro */
   --bg: #fafafa;
   --bg-card: #ffffff;
-  --bg-suave: #f5f5f7;
-  --bg-painel: #ffffff;
+  --bg-suave: #f4f4f5;
+  --bg-hover: #f4f4f5;
   --texto: #18181b;
   --texto-suave: #71717a;
   --texto-fraco: #a1a1aa;
@@ -17,12 +16,10 @@
   --primaria: #4f46e5;
   --primaria-suave: #eef2ff;
 
-  /* Cores semânticas */
   --sucesso: #16a34a;
   --erro: #dc2626;
   --aviso: #d97706;
 
-  /* Cores de tipo */
   --cor-exame: #9333ea;
   --cor-exame-bg: #faf5ff;
   --cor-atividade: #2563eb;
@@ -32,7 +29,6 @@
   --cor-periodo: #ea580c;
   --cor-periodo-bg: #fff7ed;
 
-  /* Métricas */
   --raio: 10px;
   --raio-sm: 8px;
   --raio-xs: 6px;
@@ -47,7 +43,7 @@ html[data-tema="escuro"] {
   --bg: #0b0c0f;
   --bg-card: #131418;
   --bg-suave: #1a1c21;
-  --bg-painel: #131418;
+  --bg-hover: #1a1c21;
   --texto: #ededef;
   --texto-suave: #9ca0a8;
   --texto-fraco: #6b7080;
@@ -79,7 +75,7 @@ body {
   background: var(--bg);
   color: var(--texto);
   padding: 2rem 1.25rem 5rem;
-  max-width: 880px;
+  max-width: 860px;
   margin: 0 auto;
   transition: background var(--transicao), color var(--transicao);
   line-height: 1.55;
@@ -95,7 +91,7 @@ header {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0 0 2rem;
+  padding: 0 0 2.5rem;
   flex-wrap: wrap;
 }
 header h1 {
@@ -121,16 +117,16 @@ header p {
   transition: all var(--transicao);
 }
 .btn-tema:hover {
-  background: var(--bg-card);
+  background: var(--bg-suave);
   color: var(--texto);
   border-color: var(--texto-fraco);
 }
 
-/* ============ NAV (segmented control) ============ */
+/* ============ NAV ============ */
 nav#navPrincipal {
   display: flex;
   gap: 0.125rem;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   flex-wrap: wrap;
   padding: 0.25rem;
   background: var(--bg-suave);
@@ -150,11 +146,10 @@ nav#navPrincipal button {
   font-family: inherit;
   transition: all var(--transicao);
   white-space: nowrap;
-  letter-spacing: -0.005em;
 }
 nav#navPrincipal button:hover { color: var(--texto); }
 nav#navPrincipal button.ativo {
-  background: var(--bg-card);
+  background: var(--bg);
   color: var(--texto);
   box-shadow: var(--sombra);
 }
@@ -163,28 +158,80 @@ nav#navPrincipal button.ativo {
 .secao { display: none; }
 .secao.ativa { display: block; }
 
-/* ============ CARDS ============ */
-.card {
-  background: var(--bg-card);
-  padding: 1.25rem 1.25rem;
-  border-radius: var(--raio);
-  border: 1px solid var(--borda);
-  margin-bottom: 1rem;
-}
-.card h2 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  margin-bottom: 1rem;
-  color: var(--texto);
-}
-.card h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+/* ============ SEÇÕES CONTÍNUAS (substitui .card) ============ */
+/* Blocos agora são "seções" sem moldura, separadas por título + linha */
+.card,
+.proximos-wrapper,
+.hoje-box,
+.add-panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  margin-bottom: 2.5rem;
 }
 
-/* ============ FORM ============ */
+/* Cabeçalho de cada seção: título + linha divisória */
+.card > h2,
+.proximos-header,
+.hoje-box h2 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  margin-bottom: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.card > h2 { margin-bottom: 0.75rem; }
+
+.card h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--texto-suave);
+}
+
+/* HOJE — tratamento próprio (sem virar card) */
+.hoje-box {
+  padding: 0;
+  position: relative;
+}
+.hoje-box::before { display: none; }
+.hoje-box .data-hoje {
+  font-size: 0.7rem;
+  color: var(--texto-fraco);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+.hoje-box h2 {
+  font-size: 1.15rem;
+  text-transform: none;
+  letter-spacing: -0.015em;
+  color: var(--texto);
+  font-weight: 600;
+  border-bottom: 1px solid var(--borda);
+  margin-bottom: 1rem;
+}
+.hoje-box h2::before {
+  content: "📅 Hoje — ";
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+/* FORM */
 .form-linha {
   display: flex;
   gap: 0.5rem;
@@ -210,25 +257,21 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--primaria);
   box-shadow: 0 0 0 3px var(--primaria-suave);
 }
-textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.5;
-}
+textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 .campo { margin-bottom: 0.9rem; }
 .campo label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
   color: var(--texto-suave);
   margin-bottom: 0.35rem;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .campo input, .campo select, .campo textarea { width: 100%; }
 
-/* ============ BOTÕES ============ */
+/* BOTÕES */
 button.btn {
   padding: 0.6rem 1rem;
   background: var(--texto);
@@ -256,7 +299,6 @@ button.btn.perigo:hover {
   color: var(--erro);
   opacity: 1;
 }
-
 button.btn.neutro {
   background: transparent;
   color: var(--texto-suave);
@@ -267,11 +309,7 @@ button.btn.neutro:hover {
   color: var(--texto);
   opacity: 1;
 }
-
-button.btn.pequeno {
-  padding: 0.4rem 0.7rem;
-  font-size: 0.8rem;
-}
+button.btn.pequeno { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
 
 .btn-voltar {
   background: none;
@@ -282,7 +320,7 @@ button.btn.pequeno {
   font-weight: 500;
   font-family: inherit;
   padding: 0.4rem 0;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -290,7 +328,7 @@ button.btn.pequeno {
 }
 .btn-voltar:hover { color: var(--texto); }
 
-/* ============ BADGES ============ */
+/* BADGES */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -315,7 +353,7 @@ html[data-tema="escuro"] .badge.alta { background: #2d1517; color: #f87171; }
 html[data-tema="escuro"] .badge.media { background: #2d2510; color: #fbbf24; }
 html[data-tema="escuro"] .badge.baixa { background: #102e1c; color: #4ade80; }
 
-/* ============ LISTAS ============ */
+/* LISTAS */
 ul.lista { list-style: none; }
 ul.lista li {
   padding: 0.7rem 0;
@@ -327,7 +365,6 @@ ul.lista li {
 }
 ul.lista li:last-child { border-bottom: none; padding-bottom: 0; }
 ul.lista li:first-child { padding-top: 0; }
-
 .tarefa-info { flex: 1; min-width: 200px; }
 .tarefa-info strong {
   display: block;
@@ -340,7 +377,7 @@ ul.lista li:first-child { padding-top: 0; }
   font-size: 0.78rem;
 }
 
-/* ============ UTILS ============ */
+/* UTILS */
 .concluida { text-decoration: line-through; opacity: 0.45; }
 .vazio {
   text-align: center;
@@ -363,7 +400,7 @@ ul.lista li:first-child { padding-top: 0; }
   margin-left: 0.4rem;
 }
 
-/* ============ MÉDIA ============ */
+/* MÉDIA */
 .media-box {
   background: var(--bg-suave);
   padding: 1rem;
@@ -380,13 +417,13 @@ ul.lista li:first-child { padding-top: 0; }
 .aprovado { color: var(--sucesso) !important; }
 .reprovado { color: var(--erro) !important; }
 
-/* ============ TOPBAR ============ */
+/* TOPBAR */
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 .topbar-esquerda, .topbar-direita {
@@ -405,12 +442,9 @@ ul.lista li:first-child { padding-top: 0; }
   user-select: none;
   font-weight: 500;
 }
-.atalho:hover {
-  background: var(--bg-card);
-  color: var(--texto);
-}
+.atalho:hover { background: var(--bg-card); color: var(--texto); }
 
-/* ============ SEMANA ============ */
+/* SEMANA */
 .semana-controle {
   display: flex;
   align-items: center;
@@ -439,25 +473,25 @@ ul.lista li:first-child { padding-top: 0; }
 .semana-resumo strong { color: var(--texto); font-weight: 600; }
 
 .dia {
-  background: var(--bg-card);
-  border-radius: var(--raio);
-  padding: 1rem 1.25rem;
-  margin-bottom: 0.6rem;
-  border: 1px solid var(--borda);
-  border-left: 2px solid var(--borda);
+  padding: 1rem 0;
+  border-top: 1px solid var(--borda-clara);
+  border-left: none;
+  border-radius: 0;
+  background: transparent;
 }
-.dia.hoje { border-left-color: var(--primaria); }
+.dia:first-child { border-top: none; }
+.dia.hoje { background: transparent; }
 .dia.fim-semana { opacity: 0.9; }
 .dia h3 {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   margin-bottom: 0.6rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--texto);
+  color: var(--texto-suave);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 .dia h3 .data-dia {
   font-size: 0.72rem;
@@ -485,19 +519,23 @@ ul.lista li:first-child { padding-top: 0; }
 }
 .dia ul li:last-child { border-bottom: none; padding-bottom: 0; }
 
-/* ============ STATS ============ */
+/* STATS */
 .grid-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0;
+  margin-bottom: 2.5rem;
+  border-top: 1px solid var(--borda);
+  border-bottom: 1px solid var(--borda);
 }
 .stat {
-  background: var(--bg-card);
-  padding: 1rem;
-  border-radius: var(--raio);
-  border: 1px solid var(--borda);
+  background: transparent;
+  padding: 1.25rem 1rem;
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid var(--borda-clara);
 }
+.stat:last-child { border-right: none; }
 .stat .num {
   font-size: 1.65rem;
   font-weight: 600;
@@ -507,11 +545,11 @@ ul.lista li:first-child { padding-top: 0; }
   color: var(--texto);
 }
 .stat .rotulo {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--texto-suave);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 .stat.total .num { color: var(--texto); }
 .stat.exames .num { color: var(--cor-exame); }
@@ -520,7 +558,7 @@ ul.lista li:first-child { padding-top: 0; }
 .stat.atrasadas .num { color: var(--erro); }
 .stat.periodo .num { color: var(--cor-periodo); }
 
-/* ============ BARRA DE PROGRESSO ============ */
+/* BARRA DE PROGRESSO */
 .barra-progresso {
   background: var(--bg-suave);
   border-radius: 20px;
@@ -544,10 +582,10 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   background: var(--primaria);
 }
 
-/* ============ TIMELINE / MONTH GROUP ============ */
+/* TIMELINE / MONTH GROUP */
 .mes-grupo { margin-bottom: 1.25rem; }
 .mes-titulo {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--texto-suave);
   margin-bottom: 0.5rem;
@@ -558,7 +596,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   align-items: center;
   flex-wrap: wrap;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 .mes-titulo .contador {
   font-size: 0.7rem;
@@ -567,7 +605,6 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   text-transform: none;
   letter-spacing: 0;
 }
-
 .item-timeline {
   display: flex;
   align-items: center;
@@ -604,25 +641,25 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   font-weight: 500;
 }
 
-/* ============ DISCIPLINAS (lista) ============ */
+/* DISCIPLINAS (lista) */
 .grid-disciplinas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.6rem;
 }
 .disciplina-card {
-  background: var(--bg-card);
+  background: var(--bg-suave);
   border-radius: var(--raio);
   padding: 1rem 1.1rem;
-  border: 1px solid var(--borda);
-  border-top: 3px solid var(--primaria);
+  border: none;
+  border-top: 2px solid var(--primaria);
   cursor: pointer;
   transition: all var(--transicao);
 }
 .disciplina-card:hover {
+  background: var(--bg-card);
   transform: translateY(-1px);
   box-shadow: var(--sombra-hover);
-  border-color: var(--texto-fraco);
 }
 .disciplina-card h3 {
   font-size: 0.95rem;
@@ -668,12 +705,12 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   font-weight: 400;
 }
 
-/* ============ PÁGINA DA DISCIPLINA ============ */
+/* PÁGINA DA DISCIPLINA */
 .disc-header {
   color: white;
   padding: 1.5rem 1.5rem;
   border-radius: var(--raio);
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 .disc-header h2 {
   font-size: 1.25rem;
@@ -681,10 +718,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   letter-spacing: -0.02em;
   margin-bottom: 0.25rem;
 }
-.disc-header p {
-  opacity: 0.9;
-  font-size: 0.82rem;
-}
+.disc-header p { opacity: 0.9; font-size: 0.82rem; }
 .disc-header button.btn.pequeno {
   background: rgba(255, 255, 255, 0.15);
   color: white;
@@ -696,12 +730,12 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* ============ PÁGINA DO TEMA ============ */
+/* PÁGINA DO TEMA */
 .tema-header {
   color: white;
   padding: 1.5rem 1.5rem;
   border-radius: var(--raio);
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 .tema-header h2 {
   font-size: 1.15rem;
@@ -720,14 +754,18 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   color: var(--cor-atividade);
 }
 
-/* ============ BUSCA ============ */
-.busca-panel { position: relative; margin-bottom: 1rem; }
+/* BUSCA */
+.busca-panel { position: relative; margin-bottom: 1.5rem; }
 .busca-panel input {
   width: 100%;
   padding: 0.65rem 1rem 0.65rem 2.35rem;
   font-size: 0.875rem;
+  background: var(--bg-suave);
+  border: 1px solid transparent;
+}
+.busca-panel input:focus {
   background: var(--bg-card);
-  border: 1px solid var(--borda);
+  border-color: var(--primaria);
 }
 .busca-panel::before {
   content: "🔍";
@@ -740,21 +778,25 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   opacity: 0.35;
 }
 
-/* ============ PAINEL DE ADIÇÃO ============ */
+/* PAINEL DE ADIÇÃO — sem card, só o título + conteúdo */
 .add-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--borda);
-  border-radius: var(--raio);
-  padding: 1.25rem;
-  margin-bottom: 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 2.5rem;
 }
 .add-panel h3 {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--texto);
-  letter-spacing: -0.005em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--borda);
+  color: var(--texto-suave);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
+
 .tipo-selector {
   display: flex;
   gap: 0.35rem;
@@ -794,7 +836,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   color: var(--cor-atividade);
 }
 
-/* ============ CHECK-TEMAS ============ */
+/* CHECK-TEMAS */
 .check-temas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -819,14 +861,11 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 }
 .check-temas label:hover { background: var(--bg-card); }
 .check-temas input[type="checkbox"] {
-  width: auto;
-  flex: 0;
-  min-width: auto;
-  cursor: pointer;
-  accent-color: var(--primaria);
+  width: auto; flex: 0; min-width: auto;
+  cursor: pointer; accent-color: var(--primaria);
 }
 
-/* ============ MODO DATA TOGGLE ============ */
+/* MODO DATA TOGGLE */
 .modo-data-toggle {
   display: flex;
   gap: 0.3rem;
@@ -850,12 +889,8 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 }
 .modo-data-toggle label:hover { color: var(--texto); }
 .modo-data-toggle input[type="radio"] {
-  width: auto;
-  flex: 0;
-  min-width: auto;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--primaria);
+  width: auto; flex: 0; min-width: auto;
+  margin: 0; cursor: pointer; accent-color: var(--primaria);
 }
 .modo-data-toggle label:has(input:checked) {
   background: var(--bg-card);
@@ -863,19 +898,32 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   color: var(--primaria);
 }
 
-/* ============ ITEM CARD ============ */
+/* ITEM CARD (dentro de disciplina/tema) — vira linha, sem moldura */
 .item-card {
-  background: var(--bg-card);
-  border-radius: var(--raio-sm);
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.4rem;
-  border: 1px solid var(--borda-clara);
-  border-left: 2px solid var(--borda);
-  transition: all var(--transicao);
+  padding: 0.75rem 0;
+  margin-bottom: 0;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--borda-clara);
+  background: transparent;
+  border-left: none;
+  position: relative;
+  padding-left: 0.75rem;
 }
-.item-card.tema { border-left-color: var(--cor-tema); }
-.item-card.exame { border-left-color: var(--cor-exame); }
-.item-card.atividade { border-left-color: var(--cor-atividade); }
+.item-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85rem;
+  bottom: 0.85rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--borda);
+}
+.item-card.tema::before { background: var(--cor-tema); }
+.item-card.exame::before { background: var(--cor-exame); }
+.item-card.atividade::before { background: var(--cor-atividade); }
+.item-card:last-child { border-bottom: none; }
 .item-card.concluida { opacity: 0.55; }
 
 .item-header {
@@ -885,11 +933,8 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   flex-wrap: wrap;
 }
 .item-header input[type="checkbox"] {
-  width: auto;
-  flex: 0;
-  min-width: auto;
-  margin-top: 0.25rem;
-  cursor: pointer;
+  width: auto; flex: 0; min-width: auto;
+  margin-top: 0.25rem; cursor: pointer;
   accent-color: var(--primaria);
   transform: scale(1.05);
 }
@@ -919,7 +964,6 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 }
 .item-acoes .btn.neutro:hover { background: var(--bg-suave); }
 
-/* Anotações */
 .item-notas {
   margin-top: 0.6rem;
   padding: 0.6rem 0.75rem;
@@ -941,7 +985,6 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   margin-bottom: 0.35rem;
 }
 
-/* Vínculos */
 .item-vinculos {
   margin-top: 0.5rem;
   display: flex;
@@ -961,7 +1004,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   color: var(--cor-exame);
 }
 
-/* ============ ANEXOS ============ */
+/* ANEXOS */
 .anexos-area {
   margin-top: 0.7rem;
   padding-top: 0.7rem;
@@ -1024,58 +1067,23 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 .add-anexo-form input[type="text"] { flex: 2; min-width: 140px; }
 .add-anexo-form input[type="file"] { flex: 1; min-width: 140px; }
 
-/* ============ HOJE ============ */
-.hoje-box {
-  background: var(--bg-card);
-  border: 1px solid var(--borda);
-  color: var(--texto);
-  border-radius: var(--raio);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-.hoje-box::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
-  background: var(--primaria);
-}
-.hoje-box .data-hoje {
-  font-size: 0.72rem;
-  color: var(--texto-suave);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.4rem;
-  font-weight: 600;
-}
-.hoje-box h2 {
-  font-size: 1.15rem;
-  margin-bottom: 1rem;
-  color: var(--texto);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
+/* HOJE — listas */
 .hoje-box .lista-hoje { list-style: none; }
 .hoje-box .lista-hoje li {
-  background: var(--bg-suave);
-  padding: 0.65rem 0.85rem;
-  border-radius: var(--raio-xs);
-  margin-bottom: 0.35rem;
+  background: transparent;
+  padding: 0.65rem 0;
+  border-radius: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--borda-clara);
   display: flex;
   align-items: center;
   gap: 0.6rem;
   flex-wrap: wrap;
 }
+.hoje-box .lista-hoje li:last-child { border-bottom: none; }
 .hoje-box .lista-hoje li input[type="checkbox"] {
-  width: auto;
-  flex: 0;
-  min-width: auto;
-  cursor: pointer;
-  accent-color: var(--primaria);
+  width: auto; flex: 0; min-width: auto;
+  cursor: pointer; accent-color: var(--primaria);
   transform: scale(1.05);
 }
 .hoje-box .lista-hoje li .info { flex: 1; min-width: 180px; }
@@ -1090,47 +1098,45 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   font-size: 0.75rem;
 }
 .hoje-box .vazio-hoje {
-  background: var(--bg-suave);
-  padding: 1rem;
-  border-radius: var(--raio-xs);
+  background: transparent;
+  padding: 1.5rem 0;
+  border-radius: 0;
   text-align: center;
   font-size: 0.85rem;
   color: var(--texto-suave);
 }
 
-/* ============ PRÓXIMOS ============ */
-.proximos-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--borda);
-  border-radius: var(--raio);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1rem;
-}
+/* PRÓXIMOS */
 .proximos-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.8rem;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid var(--borda-clara);
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--borda);
 }
 .proximos-header h2 {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: baseline;
   gap: 0.6rem;
   flex-wrap: wrap;
-  letter-spacing: -0.01em;
-  color: var(--texto);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  border: none;
+  padding: 0;
 }
 .proximos-resumo {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--texto-fraco);
   font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .proximos-filtro {
   display: flex;
@@ -1153,19 +1159,18 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 }
 .proximos-filtro button:hover { color: var(--texto); }
 .proximos-filtro button.ativo {
-  background: var(--bg-card);
+  background: var(--bg);
   color: var(--texto);
   box-shadow: var(--sombra);
 }
 .proximos-vazio {
   text-align: center;
-  padding: 2.5rem 1rem;
+  padding: 2rem 1rem;
   color: var(--texto-fraco);
   font-size: 0.85rem;
 }
 .proximos-lista { display: flex; flex-direction: column; gap: 1rem; }
 
-/* Grupo de dia */
 .grupo-dia-card { position: relative; padding-left: 0.9rem; }
 .grupo-dia-card::before {
   content: "";
@@ -1201,7 +1206,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   height: 8px;
   border-radius: 50%;
   background: var(--borda);
-  border: 2px solid var(--bg-card);
+  border: 2px solid var(--bg);
 }
 .grupo-dia-card.hoje .grupo-dia-ponto {
   background: var(--primaria);
@@ -1213,9 +1218,8 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   color: var(--texto-fraco);
   font-weight: 500;
 }
-.grupo-dia-itens { display: flex; flex-direction: column; gap: 0.3rem; }
+.grupo-dia-itens { display: flex; flex-direction: column; gap: 0.1rem; }
 
-/* Item de próximo */
 .prox-item {
   position: relative;
   display: flex;
@@ -1223,10 +1227,11 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   gap: 0.65rem;
   background: transparent;
   border-radius: var(--raio-sm);
-  padding: 0.65rem 0.75rem;
+  padding: 0.55rem 0.65rem;
   cursor: pointer;
   transition: background var(--transicao);
   border: none;
+  margin: 0 -0.65rem;
 }
 .prox-item:hover { background: var(--bg-suave); }
 .prox-item-barra {
@@ -1285,11 +1290,11 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   flex-shrink: 0;
 }
 
-/* ============ DISCIPLINAS NA HOME ============ */
+/* DISCIPLINAS NA HOME */
 .home-disc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.5rem;
 }
 .home-disc-card {
   position: relative;
@@ -1298,21 +1303,12 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   padding: 1rem 1.1rem;
   cursor: pointer;
   transition: all var(--transicao);
-  border: 1px solid transparent;
+  border: none;
+  border-top: 2px solid var(--cor-disc, var(--primaria));
   overflow: hidden;
-}
-.home-disc-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--cor-disc, var(--primaria));
 }
 .home-disc-card:hover {
   background: var(--bg-card);
-  border-color: var(--borda);
   transform: translateY(-1px);
   box-shadow: var(--sombra-hover);
 }
@@ -1394,7 +1390,6 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   font-weight: 500;
   color: var(--texto-fraco);
   flex-shrink: 0;
-  letter-spacing: 0;
 }
 .home-disc-stats {
   display: flex;
@@ -1427,7 +1422,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   font-size: 0.85rem;
 }
 
-/* ============ PALETA ============ */
+/* PALETA */
 .paleta-cores { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .paleta-cores button {
   width: 28px;
@@ -1439,17 +1434,17 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 }
 .paleta-cores button:hover { transform: scale(1.12); }
 .paleta-cores button.selecionada {
-  box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 3px var(--texto);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--texto);
 }
 
-/* ============ TOAST ============ */
+/* TOAST */
 .toast {
   position: fixed;
   bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%) translateY(120px);
   background: var(--texto);
-  color: var(--bg-card);
+  color: var(--bg);
   padding: 0.7rem 1.2rem;
   border-radius: var(--raio-sm);
   font-size: 0.85rem;
@@ -1470,7 +1465,7 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
 .toast.erro { background: var(--erro); color: white; }
 .toast.aviso { background: var(--aviso); color: white; }
 
-/* ============ TRANSIÇÕES ENTRE PÁGINAS ============ */
+/* TRANSIÇÕES ENTRE PÁGINAS */
 .secao {
   opacity: 0;
   transform: translateY(6px);
@@ -1523,29 +1518,29 @@ html[data-tema="escuro"] .barra-progresso .preenchimento {
   .secao.ativa { display: block; }
 }
 
-/* ============ RESPONSIVO ============ */
+/* RESPONSIVO */
 @media (max-width: 640px) {
   body { padding: 1.25rem 1rem 4rem; }
   header h1 { font-size: 1.15rem; }
   .form-linha { flex-direction: column; }
   .form-linha button { width: 100%; }
   .semana-controle h2 { width: 100%; order: -1; }
-  .grid-cards { grid-template-columns: repeat(2, 1fr); }
-  .hoje-box { padding: 1rem 1.15rem; }
+  .grid-cards { grid-template-columns: repeat(3, 1fr); }
+  .stat { padding: 1rem 0.75rem; border-right: none; border-bottom: 1px solid var(--borda-clara); }
   .hoje-box h2 { font-size: 1rem; }
+  .hoje-box h2::before { display: block; margin-bottom: 0.25rem; font-size: 0.7rem; }
   .disc-header { padding: 1.15rem 1.15rem; }
   .disc-header h2 { font-size: 1.05rem; }
   .tema-header { padding: 1.15rem 1.15rem; }
   .tema-header h2 { font-size: 1rem; }
   .home-disc-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.4rem;
   }
   .home-disc-card { padding: 0.75rem 0.85rem; }
   .home-disc-info h3 { font-size: 0.82rem; }
   .home-disc-icone { width: 26px; height: 26px; font-size: 0.85rem; }
   .stat .num { font-size: 1.35rem; }
-  .stat { padding: 0.75rem 0.85rem; }
   nav#navPrincipal {
     width: 100%;
     overflow-x: auto;

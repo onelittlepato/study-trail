@@ -567,10 +567,28 @@ function adicionarItemDisc(disciplinaId) {
     const semana = document.getElementById("discSemana")?.value.trim() || "";
     const prioridade = document.getElementById("discPrioridade")?.value || "media";
     const obs = document.getElementById("discObs")?.value.trim() || "";
+    const dados = lerModoData("disc");
+
+    if (dados.modo === "periodo") {
+      if (!dados.dataInicio || !dados.dataFim) {
+        mostrarToast("Preencha início e fim do período.", "aviso");
+        return;
+      }
+      if (dados.dataFim < dados.dataInicio) {
+        mostrarToast("Data final antes da inicial.", "aviso");
+        return;
+      }
+    }
 
     itens.push(criarItem({
       disciplinaId, nome,
-      tipo: "tema", semana, prioridade, observacoes: obs
+      tipo: "tema",
+      data: dados.modo === "unica" ? dados.data : "",
+      dataInicio: dados.modo === "periodo" ? dados.dataInicio : "",
+      dataFim: dados.modo === "periodo" ? dados.dataFim : "",
+      semana,
+      prioridade,
+      observacoes: obs
     }));
   } else {
     const dados = lerModoData("disc");

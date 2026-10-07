@@ -502,3 +502,21 @@ function adicionarItemNoTema(temaId) {
   reRenderTudo();
   mostrarToast(`✅ ${tipoSelecionadoTema === "exame" ? "Exame" : "Atividade"} adicionado(a)!`, "sucesso");
 }
+
+/**
+ * Abre o modal já com a disciplina do tema e o tema pré-selecionado.
+ */
+function abrirModalVinculadoTema(temaId, tipo) {
+  const tema = itens.find(x => x.id === temaId);
+  if (!tema) return;
+
+  // Abre o modal normalmente, com a disciplina fixa
+  abrirModalItem(tipo, tema.disciplinaId);
+
+  // Depois que o modal renderizar, marca o tema
+  setTimeout(() => {
+    const check = [...document.querySelectorAll(".modal-tema-check")]
+      .find(c => parseInt(c.value) === temaId);
+    if (check) check.checked = true;
+  }, 50);
+}

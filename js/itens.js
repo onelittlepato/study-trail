@@ -1,1152 +1,293 @@
 /* ============================================================
-   STUDY TRAIL — itens.js
-   CRUD de temas, exames e atividades + formulários + render
+   MODAL DE EDIÇÃO DE ITEM — abre ao clicar num card do roadmap
    ============================================================ */
 
-/* ============ PALETA DE CORES (usada também por disciplinas) ============ */
-const PALETA_CORES = [
-  "#4a6cf7", "#e74c3c", "#27ae60", "#f39c12",
-  "#8e44ad", "#16a085", "#e67e22", "#2980b9",
-  "#c0392b", "#d35400", "#2c3e50", "#7f8c8d"
-];
-
-/* ============ HELPERS ============ */
-function nomeDisciplina(id) {
-  const d = disciplinas.find(x => x.id === id);
-  return d ? d.nome : "(Sem disciplina)";
-}
-
-function corDisciplina(id) {
-  const d = disciplinas.find(x => x.id === id);
-  return d ? d.cor : "#888";
-}
-
-/* ============ CRUD BÁSICO ============ */
-
-/**
- * Cria um item novo (usado por Home e Disciplina).
- */
-function criarItem({ disciplinaId, nome, tipo, data, dataInicio, dataFim, semana, prioridade, observacoes, temasVinculados }) {
-  return {
-    id: gerarId(),
-    disciplinaId: disciplinaId ?? null,
-    nome,
-    tipo,
-    data: data || "",
-    dataInicio: dataInicio || "",
-    dataFim: dataFim || "",
-    semana: semana || "",
-    prioridade: prioridade || "media",
-    concluida: false,
-    observacoes: observacoes || "",
-    temasVinculados: temasVinculados || [],
-    anexos: [],
-    criadoEm: new Date().toISOString()
-  };
-}
-
-/**
- * Alterna o status de concluído de um item.
- */
-function alternarItem(id) {
-  const i = itens.find(x => x.id === id);
-  if (!i) return;
-  i.concluida = !i.concluida;
-  salvar();
-  reRenderTudo();
-}
-
-/**
- * Remove um item e limpa referências em outros.
- */
-function removerItem(id) {
-  if (!confirmar("Remover este item?")) return;
-  itens = itens.filter(x => x.id !== id);
-  // limpa vínculos de outros itens
-  itens.forEach(i => {
-    if (i.temasVinculados) {
-      i.temasVinculados = i.temasVinculados.filter(tid => tid !== id);
-    }
-  });
-  salvar();
-  reRenderTudo();
-  mostrarToast("Item removido.", "");
-}
-
-/**
- * Edita as anotações (usa prompt por simplicidade).
- */
-function editarObservacoes(id) {
-  const i = itens.find(x => x.id === id);
-  if (!i) return;
-  const nova = prompt("Editar anotações:", i.observacoes || "");
-  if (nova === null) return;
-  i.observacoes = nova.trim();
-  salvar();
-  reRenderTudo();
-}
-
-/**
- * Abre/fecha o painel de anotações.
- */
-function toggleNotas(id) {
-  const el = document.getElementById("notas-" + id);
-  if (el) el.classList.toggle("visivel");
-}
-
-/* ============ FORMULÁRIO DINÂMICO (HOME) ============ */
-
-function selecionarTipoHome(tipo) {
-  tipoSelecionadoHome = tipo;
-  renderFormDinamicoHome();
-  document.querySelectorAll("#tipoSelectorHome button").forEach(b => {
-    b.classList.toggle("ativo", b.dataset.tipo === tipo);
-  });
-}
-
-function renderFormDinamicoHome() {
-  const form = document.getElementById("formDinamicoHome");
-  if (!form) return;
-
-  const opcoesDisciplinas = disciplinas.length === 0
-    ? '<option value="">⚠️ Cadastre uma disciplina primeiro</option>'
-    : '<option value="">— Sem disciplina —</option>' +
-      disciplinas.map(d => `<option value="${d.id}">${escaparHtml(d.nome)}</option>`).join("");
-
-  let html = "";
-
-  const campoDisciplina = `
-    <div class="campo">
-      <label>📚 Disciplina</label>
-      <select id="homeDisciplina" onchange="atualizarTemasDisponiveis('home')">
-        ${opcoesDisciplinas}
-      </select>
-    </div>
-  `;
-
-  if (tipoSelecionadoHome === "tema") {
-    html = `
-      ${campoDisciplina}
-      <div class="campo">
-        <label>Nome do tema</label>
-        <input type="text" id="homeNome" placeholder="Ex: Limites e continuidade">
-      </div>
-
-      <div class="campo">
-        <label>Semana (opcional)</label>
-        <input type="text" id="homeSemana" placeholder="Ex: Sem 3">
-      </div>
-
-      <div class="modo-data-toggle">
-        <label><input type="radio" name="homeModo" value="sem-data" checked onchange="toggleModoData('home')"> 🚫 Sem data</label>
-        <label><input type="radio" name="homeModo" value="unica" onchange="toggleModoData('home')"> 📅 Data única</label>
-        <label><input type="radio" name="homeModo" value="periodo" onchange="toggleModoData('home')"> 📆 Período de dias</label>
-      </div>
-
-      <div id="homeModoUnica" style="display:none;">
-        <div class="campo">
-          <label>Data do tema</label>
-          <input type="date" id="homeData">
-        </div>
-      </div>
-
-      <div id="homeModoPeriodo" style="display:none;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>Início</label>
-            <input type="date" id="homeDataInicio">
-          </div>
-          <div class="campo">
-            <label>Fim</label>
-            <input type="date" id="homeDataFim">
-          </div>
-        </div>
-      </div>
-
-      <div class="campo">
-        <label>Prioridade</label>
-        <select id="homePrioridade">
-          <option value="baixa">🟢 Baixa</option>
-          <option value="media" selected>🟡 Média</option>
-          <option value="alta">🔴 Alta</option>
-        </select>
-      </div>
-
-      <div class="campo">
-        <label>Notas / Anotações (opcional)</label>
-        <textarea id="homeObs" placeholder="Fórmulas, links, lembretes..."></textarea>
-      </div>
-      <button class="btn" onclick="adicionarItemHome()">📖 Adicionar tema</button>
-    `;
-  } else {
-    // exame e atividade compartilham layout (data ou período + temas vinculados)
-    const labelData = tipoSelecionadoHome === "exame" ? "Data" : "Data de entrega";
-    const labelTemas = tipoSelecionadoHome === "exame"
-      ? "📖 Temas cobrados (opcional)"
-      : "📖 Temas relacionados (opcional)";
-    const labelBotao = tipoSelecionadoHome === "exame"
-      ? "🎯 Adicionar exame"
-      : "📝 Adicionar atividade";
-
-    html = `
-      ${campoDisciplina}
-      <div class="campo">
-        <label>Nome ${tipoSelecionadoHome === "exame" ? "do exame" : "da atividade"}</label>
-        <input type="text" id="homeNome" placeholder="${tipoSelecionadoHome === "exame" ? "Ex: P1, Prova Final" : "Ex: Lista 1, Trabalho em grupo"}">
-      </div>
-
-      <div class="modo-data-toggle">
-        <label><input type="radio" name="homeModo" value="unica" checked onchange="toggleModoData('home')"> 📅 Data única</label>
-        <label><input type="radio" name="homeModo" value="periodo" onchange="toggleModoData('home')"> 📆 Período de dias</label>
-      </div>
-
-      <div id="homeModoUnica">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>${labelData}</label>
-            <input type="date" id="homeData">
-          </div>
-          <div class="campo">
-            <label>Prioridade</label>
-            <select id="homePrioridade">
-              <option value="baixa">🟢 Baixa</option>
-              <option value="media" selected>🟡 Média</option>
-              <option value="alta">🔴 Alta</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div id="homeModoPeriodo" style="display:none;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>Início</label>
-            <input type="date" id="homeDataInicio">
-          </div>
-          <div class="campo">
-            <label>Fim</label>
-            <input type="date" id="homeDataFim">
-          </div>
-        </div>
-        <div class="campo">
-          <label>Prioridade</label>
-          <select id="homePrioridadePeriodo">
-            <option value="baixa">🟢 Baixa</option>
-            <option value="media" selected>🟡 Média</option>
-            <option value="alta">🔴 Alta</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="campo">
-        <label>${labelTemas}</label>
-        <div id="temasContainer">
-          <p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Escolha uma disciplina acima.</p>
-        </div>
-      </div>
-      <div class="campo">
-        <label>Notas / Anotações (opcional)</label>
-        <textarea id="homeObs" placeholder="Conteúdo, sala, dicas..."></textarea>
-      </div>
-      <button class="btn" onclick="adicionarItemHome()">${labelBotao}</button>
-    `;
-  }
-
-  form.innerHTML = html;
-
-  // duplica o select de prioridade (um por modo) para simplificar leitura
-  sincronizarPrioridade('home');
-
-  if (tipoSelecionadoHome !== "tema") {
-    atualizarTemasDisponiveis("home");
-  }
-}
-
-/* ============ FORMULÁRIO DINÂMICO (DISCIPLINA) ============ */
-
-function selecionarTipoDisc(tipo) {
-  tipoSelecionadoDisc = tipo;
-  renderFormDinamicoDisc(disciplinaAberta);
-  document.querySelectorAll("#tipoSelectorDisc button").forEach(b => {
-    b.classList.toggle("ativo", b.dataset.tipo === tipo);
-  });
-}
-
-function renderFormDinamicoDisc(disciplinaId) {
-  const form = document.getElementById("formDinamicoDisc");
-  if (!form || !disciplinaId) return;
-
-  const temasDisponiveis = itens.filter(i =>
-    i.disciplinaId === disciplinaId && i.tipo === "tema"
-  );
-
-  let html = "";
-
-  if (tipoSelecionadoDisc === "tema") {
-    html = `
-      <div class="campo">
-        <label>Nome do tema</label>
-        <input type="text" id="discNomeItem" placeholder="Ex: Limites e continuidade">
-      </div>
-
-      <div class="campo">
-        <label>Semana (opcional)</label>
-        <input type="text" id="discSemana" placeholder="Ex: Sem 3">
-      </div>
-
-      <div class="modo-data-toggle">
-        <label><input type="radio" name="discModo" value="sem-data" checked onchange="toggleModoData('disc')"> 🚫 Sem data</label>
-        <label><input type="radio" name="discModo" value="unica" onchange="toggleModoData('disc')"> 📅 Data única</label>
-        <label><input type="radio" name="discModo" value="periodo" onchange="toggleModoData('disc')"> 📆 Período de dias</label>
-      </div>
-
-      <div id="discModoUnica" style="display:none;">
-        <div class="campo">
-          <label>Data do tema</label>
-          <input type="date" id="discData">
-        </div>
-      </div>
-
-      <div id="discModoPeriodo" style="display:none;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>Início</label>
-            <input type="date" id="discDataInicio">
-          </div>
-          <div class="campo">
-            <label>Fim</label>
-            <input type="date" id="discDataFim">
-          </div>
-        </div>
-      </div>
-
-      <div class="campo">
-        <label>Prioridade</label>
-        <select id="discPrioridade">
-          <option value="baixa">🟢 Baixa</option>
-          <option value="media" selected>🟡 Média</option>
-          <option value="alta">🔴 Alta</option>
-        </select>
-      </div>
-
-      <div class="campo">
-        <label>Notas / Anotações (opcional)</label>
-        <textarea id="discObs" placeholder="Fórmulas, links, lembretes..."></textarea>
-      </div>
-      <button class="btn" onclick="adicionarItemDisc(${disciplinaId})">📖 Adicionar tema</button>
-    `;
-  } else {
-    const labelData = tipoSelecionadoDisc === "exame" ? "Data" : "Data de entrega";
-    const labelTemas = tipoSelecionadoDisc === "exame"
-      ? "📖 Temas cobrados neste exame (opcional)"
-      : "📖 Temas relacionados (opcional)";
-    const labelBotao = tipoSelecionadoDisc === "exame"
-      ? "🎯 Adicionar exame"
-      : "📝 Adicionar atividade";
-
-    const checkTemas = temasDisponiveis.length === 0
-      ? '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Nenhum tema cadastrado ainda.</p>'
-      : `<div class="check-temas">
-          ${temasDisponiveis.map(t => `
-            <label>
-              <input type="checkbox" value="${t.id}" class="tema-check-disc">
-              ${escaparHtml(t.nome)} ${t.semana ? `<small style="color:var(--texto-fraco);">(${escaparHtml(t.semana)})</small>` : ""}
-            </label>
-          `).join("")}
-        </div>`;
-
-    html = `
-      <div class="campo">
-        <label>Nome ${tipoSelecionadoDisc === "exame" ? "do exame" : "da atividade"}</label>
-        <input type="text" id="discNomeItem" placeholder="${tipoSelecionadoDisc === "exame" ? "Ex: P1, Prova Final" : "Ex: Lista 1, Trabalho em grupo"}">
-      </div>
-
-      <div class="modo-data-toggle">
-        <label><input type="radio" name="discModo" value="unica" checked onchange="toggleModoData('disc')"> 📅 Data única</label>
-        <label><input type="radio" name="discModo" value="periodo" onchange="toggleModoData('disc')"> 📆 Período de dias</label>
-      </div>
-
-      <div id="discModoUnica">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>${labelData}</label>
-            <input type="date" id="discData">
-          </div>
-          <div class="campo">
-            <label>Prioridade</label>
-            <select id="discPrioridade">
-              <option value="baixa">🟢 Baixa</option>
-              <option value="media" selected>🟡 Média</option>
-              <option value="alta">🔴 Alta</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div id="discModoPeriodo" style="display:none;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>Início</label>
-            <input type="date" id="discDataInicio">
-          </div>
-          <div class="campo">
-            <label>Fim</label>
-            <input type="date" id="discDataFim">
-          </div>
-        </div>
-        <div class="campo">
-          <label>Prioridade</label>
-          <select id="discPrioridadePeriodo">
-            <option value="baixa">🟢 Baixa</option>
-            <option value="media" selected>🟡 Média</option>
-            <option value="alta">🔴 Alta</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="campo">
-        <label>${labelTemas}</label>
-        ${checkTemas}
-      </div>
-      <div class="campo">
-        <label>Notas / Anotações (opcional)</label>
-        <textarea id="discObs" placeholder="Detalhes, requisitos, links..."></textarea>
-      </div>
-      <button class="btn" onclick="adicionarItemDisc(${disciplinaId})">${labelBotao}</button>
-    `;
-  }
-
-  form.innerHTML = html;
-}
-
-/* ============ HELPERS DE MODO DATA / PERÍODO ============ */
-
-/**
- * Alterna entre modo "unica" e "periodo" no formulário.
- */
-function toggleModoData(escopo) {
-  const unica = document.getElementById(escopo + "ModoUnica");
-  const periodo = document.getElementById(escopo + "ModoPeriodo");
-  const radio = document.querySelector(`input[name="${escopo}Modo"]:checked`);
-  if (!unica || !periodo || !radio) return;
-
-  if (radio.value === "periodo") {
-    unica.style.display = "none";
-    periodo.style.display = "block";
-  } else {
-    unica.style.display = "block";
-    periodo.style.display = "none";
-  }
-}
-
-/**
- * Sincroniza as prioridades entre os dois selects (unica e periodo)
- * para que escolher uma prioridade num modo reflita no outro.
- */
-function sincronizarPrioridade(escopo) {
-  const sUnica = document.getElementById(escopo + "Prioridade");
-  const sPeriodo = document.getElementById(escopo + "PrioridadePeriodo");
-  if (!sUnica || !sPeriodo) return;
-
-  sUnica.addEventListener("change", () => { sPeriodo.value = sUnica.value; });
-  sPeriodo.addEventListener("change", () => { sUnica.value = sPeriodo.value; });
-}
-
-/**
- * Lê o modo atual do formulário e retorna os campos de data/prioridade.
- */
-function lerModoData(escopo) {
-  const radio = document.querySelector(`input[name="${escopo}Modo"]:checked`);
-  const modo = radio ? radio.value : "unica";
-
-  if (modo === "periodo") {
-    return {
-      modo: "periodo",
-      dataInicio: document.getElementById(escopo + "DataInicio")?.value || "",
-      dataFim: document.getElementById(escopo + "DataFim")?.value || "",
-      data: "",
-      prioridade: document.getElementById(escopo + "PrioridadePeriodo")?.value || "media"
-    };
-  }
-  return {
-    modo: "unica",
-    data: document.getElementById(escopo + "Data")?.value || "",
-    dataInicio: "",
-    dataFim: "",
-    prioridade: document.getElementById(escopo + "Prioridade")?.value || "media"
-  };
-}
-
-/* ============ ADICIONAR VIA HOME ============ */
-
-function adicionarItemHome() {
-  const discIdStr = document.getElementById("homeDisciplina")?.value || "";
-  const disciplinaId = discIdStr ? parseInt(discIdStr) : null;
-  const nome = (document.getElementById("homeNome")?.value || "").trim();
-
-  if (!nome) {
-    mostrarToast("Digite o nome do item.", "aviso");
-    return;
-  }
-
-  // Tema: pode ter data, período, ou nenhum dos dois
-  if (tipoSelecionadoHome === "tema") {
-    const semana = document.getElementById("homeSemana")?.value.trim() || "";
-    const prioridade = document.getElementById("homePrioridade")?.value || "media";
-    const obs = document.getElementById("homeObs")?.value.trim() || "";
-    const dados = lerModoData("home");
-
-    // Validações de período
-    if (dados.modo === "periodo") {
-      if (!dados.dataInicio || !dados.dataFim) {
-        mostrarToast("Preencha início e fim do período.", "aviso");
-        return;
-      }
-      if (dados.dataFim < dados.dataInicio) {
-        mostrarToast("Data final antes da inicial.", "aviso");
-        return;
-      }
-    }
-
-    itens.push(criarItem({
-      disciplinaId, nome,
-      tipo: "tema",
-      data: dados.modo === "unica" ? dados.data : "",
-      dataInicio: dados.modo === "periodo" ? dados.dataInicio : "",
-      dataFim: dados.modo === "periodo" ? dados.dataFim : "",
-      semana,
-      prioridade,
-      observacoes: obs
-    }));
-  } else {
-    const dados = lerModoData("home");
-    const obs = document.getElementById("homeObs")?.value.trim() || "";
-
-    if (dados.modo === "periodo" && (!dados.dataInicio || !dados.dataFim)) {
-      mostrarToast("Preencha início e fim do período.", "aviso");
-      return;
-    }
-    if (dados.modo === "periodo" && dados.dataFim < dados.dataInicio) {
-      mostrarToast("Data final antes da inicial.", "aviso");
-      return;
-    }
-
-    const temasVinculados = [];
-    document.querySelectorAll(".tema-check-home:checked").forEach(c => {
-      temasVinculados.push(parseInt(c.value));
-    });
-
-    itens.push(criarItem({
-      disciplinaId, nome,
-      tipo: tipoSelecionadoHome,
-      data: dados.data,
-      dataInicio: dados.dataInicio,
-      dataFim: dados.dataFim,
-      prioridade: dados.prioridade,
-      observacoes: obs,
-      temasVinculados
-    }));
-  }
-
-  salvar();
-  renderFormDinamicoHome();
-  reRenderTudo();
-  mostrarToast("✅ Item adicionado!", "sucesso");
-}
-
-/* ============ ADICIONAR VIA DISCIPLINA ============ */
-
-function adicionarItemDisc(disciplinaId) {
-  const nome = (document.getElementById("discNomeItem")?.value || "").trim();
-  if (!nome) {
-    mostrarToast("Digite o nome do item.", "aviso");
-    return;
-  }
-
-  if (tipoSelecionadoDisc === "tema") {
-    const semana = document.getElementById("discSemana")?.value.trim() || "";
-    const prioridade = document.getElementById("discPrioridade")?.value || "media";
-    const obs = document.getElementById("discObs")?.value.trim() || "";
-    const dados = lerModoData("disc");
-
-    if (dados.modo === "periodo") {
-      if (!dados.dataInicio || !dados.dataFim) {
-        mostrarToast("Preencha início e fim do período.", "aviso");
-        return;
-      }
-      if (dados.dataFim < dados.dataInicio) {
-        mostrarToast("Data final antes da inicial.", "aviso");
-        return;
-      }
-    }
-
-    itens.push(criarItem({
-      disciplinaId, nome,
-      tipo: "tema",
-      data: dados.modo === "unica" ? dados.data : "",
-      dataInicio: dados.modo === "periodo" ? dados.dataInicio : "",
-      dataFim: dados.modo === "periodo" ? dados.dataFim : "",
-      semana,
-      prioridade,
-      observacoes: obs
-    }));
-  } else {
-    const dados = lerModoData("disc");
-    const obs = document.getElementById("discObs")?.value.trim() || "";
-
-    if (dados.modo === "periodo" && (!dados.dataInicio || !dados.dataFim)) {
-      mostrarToast("Preencha início e fim do período.", "aviso");
-      return;
-    }
-    if (dados.modo === "periodo" && dados.dataFim < dados.dataInicio) {
-      mostrarToast("Data final antes da inicial.", "aviso");
-      return;
-    }
-
-    const temasVinculados = [];
-    document.querySelectorAll(".tema-check-disc:checked").forEach(c => {
-      temasVinculados.push(parseInt(c.value));
-    });
-
-    itens.push(criarItem({
-      disciplinaId, nome,
-      tipo: tipoSelecionadoDisc,
-      data: dados.data,
-      dataInicio: dados.dataInicio,
-      dataFim: dados.dataFim,
-      prioridade: dados.prioridade,
-      observacoes: obs,
-      temasVinculados
-    }));
-  }
-
-  salvar();
-  renderPaginaDisciplina(disciplinaId);
-  reRenderTudo();
-  mostrarToast("✅ Item adicionado!", "sucesso");
-}
-
-/* ============ TEMAS DISPONÍVEIS (checkbox) ============ */
-
-function atualizarTemasDisponiveis(escopo) {
-  const cont = document.getElementById("temasContainer");
-  if (!cont || escopo !== "home") return;
-
-  const discId = parseInt(document.getElementById("homeDisciplina")?.value || "0");
-  if (!discId) {
-    cont.innerHTML = '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Escolha uma disciplina acima.</p>';
-    return;
-  }
-
-  const temas = itens.filter(i => i.disciplinaId === discId && i.tipo === "tema");
-  if (temas.length === 0) {
-    cont.innerHTML = '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Nenhum tema cadastrado nesta disciplina ainda.</p>';
-    return;
-  }
-
-  cont.innerHTML = `<div class="check-temas">
-    ${temas.map(t => `
-      <label>
-        <input type="checkbox" value="${t.id}" class="tema-check-home">
-        ${escaparHtml(t.nome)} ${t.semana ? `<small style="color:var(--texto-fraco);">(${escaparHtml(t.semana)})</small>` : ""}
-      </label>
-    `).join("")}
-  </div>`;
-}
-
-/* ============ RENDER: ITEM CARD (dentro da disciplina) ============ */
-
-function renderItemCard(item, temasTodos, exames, atividades, corDisc) {
-  const hoje = hojeISO();
-  const atrasado = itemEhAtrasado(item);
-  const temObs = item.observacoes && item.observacoes.trim().length > 0;
-  const temAnexos = item.anexos && item.anexos.length > 0;
-
-  // vínculos
-  let vinculosHtml = "";
-
-  if (item.tipo === "tema") {
-    const usadosEm = [...exames, ...atividades].filter(x =>
-      x.temasVinculados && x.temasVinculados.includes(item.id)
-    );
-    if (usadosEm.length > 0) {
-      vinculosHtml = `
-        <div class="item-vinculos">
-          ${usadosEm.map(x => `
-            <span class="vinculo-chip ${x.tipo === 'exame' ? 'exame' : ''}">
-              ${x.tipo === 'exame' ? '🎯' : '📝'} ${escaparHtml(x.nome)}
-            </span>
-          `).join("")}
-        </div>`;
-    }
-  } else {
-    const nomes = (item.temasVinculados || [])
-      .map(tid => itens.find(x => x.id === tid))
-      .filter(Boolean);
-    if (nomes.length > 0) {
-      vinculosHtml = `
-        <div class="item-vinculos">
-          ${nomes.map(t => `
-            <span class="vinculo-chip">📖 ${escaparHtml(t.nome)}${t.semana ? ' (' + escaparHtml(t.semana) + ')' : ''}</span>
-          `).join("")}
-        </div>`;
-    }
-  }
-
-  // meta (data ou período, semana, prioridade, atraso)
-  const metaHtml = [];
-  if (ehPeriodo(item)) {
-    metaHtml.push(`<span class="badge periodo">📆 ${formatarBR(item.dataInicio)} – ${formatarBR(item.dataFim)}</span>`);
-  } else if (item.data) {
-    metaHtml.push("📅 " + formatarBR(item.data));
-  }
-  if (item.semana) metaHtml.push(`<span class="badge tema">${escaparHtml(item.semana)}</span>`);
-  if (atrasado) metaHtml.push('<span class="badge atrasada">ATRASADA</span>');
-
-  const clicavel = item.tipo === "tema" ? `onclick="abrirTema(${item.id})" style="cursor:pointer; border-left-color:${corDisc};"` : `style="border-left-color:${corDisc};"`;
-
-  return `
-    <div class="item-card ${item.tipo} ${item.concluida ? 'concluida' : ''}" ${clicavel}>
-      <div class="item-header" onclick="event.stopPropagation();">
-        <input type="checkbox" ${item.concluida ? "checked" : ""}
-               onchange="alternarItem(${item.id})">
-        <div class="titulo">
-          <strong class="${item.concluida ? 'concluida' : ''}">${escaparHtml(item.nome)}</strong>
-          <small>
-            ${metaHtml.join(" • ")}
-            • <span class="badge ${item.prioridade}">${rotuloPrioridade(item.prioridade)}</span>
-            ${temAnexos ? ` • <span style="color:${corDisc}; font-weight:600;">📎 ${item.anexos.length}</span>` : ""}
-          </small>
-        </div>
-        <div class="item-acoes">
-          <button class="btn neutro pequeno" onclick="toggleNotas(${item.id})" title="Ver anotações">📓</button>
-          <button class="btn neutro pequeno" onclick="editarObservacoes(${item.id})" title="Editar anotações">✏️</button>
-          <button class="btn neutro pequeno" onclick="toggleAnexos(${item.id})" title="Anexos">📎</button>
-          <button class="btn perigo pequeno" onclick="removerItem(${item.id})">🗑️</button>
-        </div>
-      </div>
-      ${vinculosHtml}
-      ${item.tipo === "tema" ? `
-        <div style="margin-top:0.6rem; padding-top:0.6rem; border-top:1px dashed var(--borda); font-size:0.8rem; color:var(--cor-fraca, #888); display:flex; justify-content:space-between; align-items:center;">
-          <span>Clique no card para abrir a página completa do tema</span>
-          <span style="color:${corDisc}; font-weight:700;">→</span>
-        </div>
-      ` : ""}
-      <div class="item-notas ${temObs ? 'visivel' : ''}" id="notas-${item.id}">
-      <div class="item-notas ${temObs ? 'visivel' : ''}" id="notas-${item.id}">
-        <span class="rotulo-nota">📓 Anotações</span>
-        ${temObs ? escaparHtml(item.observacoes) : '<em style="color:var(--texto-fraco);">Sem anotações. Clique em ✏️ para adicionar.</em>'}
-      </div>
-      <div class="anexos-area" id="anexos-${item.id}">
-        <span class="rotulo-nota" style="color:${corDisc};">📎 Anexos e links</span>
-        ${renderAnexos(item.id)}
-      </div>
-    </div>
-  `;
-}
-
-/* ============ HELPERS DE STATUS ============ */
-
-/**
- * Verifica se um item está atrasado (só faz sentido para data/período).
- */
-function itemEhAtrasado(item) {
-  if (item.concluida) return false;
-  const hoje = hojeISO();
-  if (ehPeriodo(item)) return item.dataFim < hoje;
-  return !!item.data && item.data < hoje;
-}
-
-/**
- * Re-renderiza todas as áreas que dependem do estado global.
- */
-function reRenderTudo() {
-  if (typeof renderInicio === "function") renderInicio();
-  if (typeof renderListaDisciplinas === "function") renderListaDisciplinas();
-  if (typeof renderSemana === "function") renderSemana();
-  if (typeof renderNotas === "function") renderNotas();
-  if (disciplinaAberta && typeof renderPaginaDisciplina === "function") {
-    renderPaginaDisciplina(disciplinaAberta);
-  }
-}
-
-/* ============================================================
-   MODAL DE ADIÇÃO DE ITEM
-   ============================================================ */
-
-/** Estado do modal */
-let modalTipoAtual = "tema";
-let modalDisciplinaFixa = null;  // se definido, o campo disciplina não aparece
-let modalModoData = "sem-data";  // "sem-data" | "unica" | "periodo"
-
-/**
- * Abre o modal para adicionar um item.
- * @param {string} tipo - "tema" | "exame" | "atividade"
- * @param {number|null} disciplinaFixaId - se passado, fixa a disciplina
- */
-function abrirModalItem(tipo, disciplinaFixaId = null) {
-  modalTipoAtual = tipo;
-  modalDisciplinaFixa = disciplinaFixaId;
-  modalModoData = (tipo === "tema") ? "sem-data" : "unica";
+function abrirModalEdicao(itemId) {
+  const item = itens.find(x => x.id === itemId);
+  if (!item) return;
+
+  modalItemEditando = itemId;
 
   const overlay = document.getElementById("modalOverlay");
   const conteudo = document.getElementById("modalConteudo");
   if (!overlay || !conteudo) return;
 
-  const icone = tipo === "tema" ? "📖" : tipo === "exame" ? "🎯" : "📝";
-  const titulo = tipo === "tema" ? "Novo tema de estudo"
-               : tipo === "exame" ? "Novo exame"
-               : "Nova atividade";
+  const icone = item.tipo === "exame" ? "🎯" : item.tipo === "tema" ? "📖" : "📝";
+  const titulo = item.tipo === "exame" ? "Editar exame"
+               : item.tipo === "tema" ? "Editar tema"
+               : "Editar atividade";
 
-  // Nome da disciplina fixa
-  let disciplinaInfo = "";
-  if (disciplinaFixaId) {
-    const d = disciplinas.find(x => x.id === disciplinaFixaId);
-    if (d) {
-      disciplinaInfo = `
-        <div class="modal-disciplina-info" style="
-          display: flex; align-items: center; gap: 0.5rem;
-          padding: 0.6rem 0.75rem; margin-bottom: 1rem;
-          background: var(--bg-suave); border-radius: var(--raio-xs);
-          font-size: 0.85rem;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: ${d.cor}; display: inline-block;"></span>
-          <span style="font-weight: 500;">${escaparHtml(d.nome)}</span>
+  const isTema = item.tipo === "tema";
+  const temPeriodo = item.dataInicio && item.dataFim && item.dataInicio !== item.dataFim;
+  const modoAtual = temPeriodo ? "periodo" : item.data ? "unica" : "sem-data";
+
+  // opções de disciplinas
+  const opcoesDisc = '<option value="">— Sem disciplina —</option>' +
+    disciplinas.map(d => `
+      <option value="${d.id}" ${d.id === item.disciplinaId ? "selected" : ""}>
+        ${escaparHtml(d.nome)}
+      </option>
+    `).join("");
+
+  // links existentes
+  const links = item.links || [];
+  const linksHtml = links.length === 0
+    ? '<p style="font-size:0.8rem; color:var(--texto-fraco); padding:0.4rem 0;">Nenhum link ainda.</p>'
+    : links.map((l, idx) => `
+        <div class="link-item">
+          <span class="link-icone">🔗</span>
+          <a class="link-nome" href="${escaparHtml(l.url)}" target="_blank" rel="noopener">
+            ${escaparHtml(l.nome || l.url)}
+          </a>
+          <button class="link-remover" onclick="removerLinkModal(${idx})" title="Remover">✕</button>
         </div>
-      `;
-    }
-  }
-
-  // Select de disciplinas (se não estiver fixa)
-  const opcoesDisciplinas = disciplinas.length === 0
-    ? '<option value="">⚠️ Cadastre uma disciplina primeiro</option>'
-    : '<option value="">— Sem disciplina —</option>' +
-      disciplinas.map(d => `<option value="${d.id}">${escaparHtml(d.nome)}</option>`).join("");
-
-  const campoDisciplina = modalDisciplinaFixa
-    ? disciplinaInfo
-    : `
-      <div class="campo">
-        <label>📚 Disciplina</label>
-        <select id="modalDisciplina" onchange="atualizarTemasModal()">
-          ${opcoesDisciplinas}
-        </select>
-      </div>
-    `;
-
-  // Conteúdo específico por tipo
-  let corpo = "";
-
-  if (tipo === "tema") {
-    corpo = `
-      <div class="campo">
-        <label>Nome do tema</label>
-        <input type="text" id="modalNome" placeholder="Ex: Limites e continuidade" autofocus>
-      </div>
-
-      <div class="campo">
-        <label>Semana (opcional)</label>
-        <input type="text" id="modalSemana" placeholder="Ex: Sem 3">
-      </div>
-
-      <div class="campo">
-        <label>Quando estudar (opcional)</label>
-        <div class="modo-data-toggle">
-          <label><input type="radio" name="modalModo" value="sem-data" checked onchange="mudarModoDataModal(this.value)"> 🚫 Sem data</label>
-          <label><input type="radio" name="modalModo" value="unica" onchange="mudarModoDataModal(this.value)"> 📅 Data</label>
-          <label><input type="radio" name="modalModo" value="periodo" onchange="mudarModoDataModal(this.value)"> 📆 Período</label>
-        </div>
-      </div>
-
-      <div id="modalModoUnica" style="display:none;">
-        <div class="campo">
-          <label>Data</label>
-          <input type="date" id="modalData">
-        </div>
-      </div>
-
-      <div id="modalModoPeriodo" style="display:none;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>Início</label>
-            <input type="date" id="modalDataInicio">
-          </div>
-          <div class="campo">
-            <label>Fim</label>
-            <input type="date" id="modalDataFim">
-          </div>
-        </div>
-      </div>
-
-      <div class="campo">
-        <label>Prioridade</label>
-        <select id="modalPrioridade">
-          <option value="baixa">🟢 Baixa</option>
-          <option value="media" selected>🟡 Média</option>
-          <option value="alta">🔴 Alta</option>
-        </select>
-      </div>
-
-      <div class="campo">
-        <label>Anotações (opcional)</label>
-        <textarea id="modalObs" placeholder="Fórmulas, links, lembretes..."></textarea>
-      </div>
-    `;
-  } else {
-    const labelData = tipo === "exame" ? "Data do exame" : "Data de entrega";
-    const labelTemas = tipo === "exame"
-      ? "📖 Temas cobrados (opcional)"
-      : "📖 Temas relacionados (opcional)";
-
-    corpo = `
-      <div class="campo">
-        <label>Nome ${tipo === "exame" ? "do exame" : "da atividade"}</label>
-        <input type="text" id="modalNome" placeholder="${tipo === "exame" ? "Ex: P1, Prova Final" : "Ex: Lista 1, Trabalho em grupo"}" autofocus>
-      </div>
-
-      <div class="modo-data-toggle">
-        <label><input type="radio" name="modalModo" value="unica" checked onchange="mudarModoDataModal(this.value)"> 📅 Data única</label>
-        <label><input type="radio" name="modalModo" value="periodo" onchange="mudarModoDataModal(this.value)"> 📆 Período</label>
-      </div>
-
-      <div id="modalModoUnica">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>${labelData}</label>
-            <input type="date" id="modalData">
-          </div>
-          <div class="campo">
-            <label>Prioridade</label>
-            <select id="modalPrioridade">
-              <option value="baixa">🟢 Baixa</option>
-              <option value="media" selected>🟡 Média</option>
-              <option value="alta">🔴 Alta</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div id="modalModoPeriodo" style="display:none;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
-          <div class="campo">
-            <label>Início</label>
-            <input type="date" id="modalDataInicio">
-          </div>
-          <div class="campo">
-            <label>Fim</label>
-            <input type="date" id="modalDataFim">
-          </div>
-        </div>
-        <div class="campo">
-          <label>Prioridade</label>
-          <select id="modalPrioridadePeriodo">
-            <option value="baixa">🟢 Baixa</option>
-            <option value="media" selected>🟡 Média</option>
-            <option value="alta">🔴 Alta</option>
-          </select>
-        </div>
-      </div>
-
-      ${!modalDisciplinaFixa ? `
-        <div class="campo">
-          <label>${labelTemas}</label>
-          <div id="modalTemasContainer">
-            <p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">
-              Escolha uma disciplina acima para ver os temas.
-            </p>
-          </div>
-        </div>
-      ` : `
-        <div class="campo">
-          <label>${labelTemas}</label>
-          <div id="modalTemasContainer">
-            ${renderTemasModalCheckboxes(modalDisciplinaFixa)}
-          </div>
-        </div>
-      `}
-
-      <div class="campo">
-        <label>Anotações (opcional)</label>
-        <textarea id="modalObs" placeholder="Conteúdo, sala, dicas..."></textarea>
-      </div>
-    `;
-  }
+      `).join("");
 
   conteudo.innerHTML = `
     <div class="modal-header">
       <h3><span class="modal-icone">${icone}</span>${titulo}</h3>
       <button class="modal-fechar" onclick="fecharModal()" aria-label="Fechar">✕</button>
     </div>
+
     <div class="modal-body">
-      ${campoDisciplina}
-      ${corpo}
+
+      <div class="campo">
+        <label>Título</label>
+        <input type="text" id="editNome" value="${escaparHtml(item.nome)}" autofocus>
+      </div>
+
+      <div class="linha-dupla">
+        <div class="campo">
+          <label>Disciplina</label>
+          <select id="editDisciplina">
+            ${opcoesDisc}
+          </select>
+        </div>
+        <div class="campo">
+          <label>Prioridade</label>
+          <select id="editPrioridade">
+            <option value="baixa" ${item.prioridade === "baixa" ? "selected" : ""}>🟢 Baixa</option>
+            <option value="media" ${item.prioridade === "media" ? "selected" : ""}>🟡 Média</option>
+            <option value="alta" ${item.prioridade === "alta" ? "selected" : ""}>🔴 Alta</option>
+          </select>
+        </div>
+      </div>
+
+      ${isTema ? `
+        <div class="campo">
+          <label>Semana</label>
+          <input type="text" id="editSemana" value="${escaparHtml(item.semana || "")}" placeholder="Ex: Sem 3">
+        </div>
+      ` : ""}
+
+      <div class="campo">
+        <label>Quando</label>
+        <div class="modo-data-toggle">
+          <label><input type="radio" name="editModo" value="sem-data" ${modoAtual === "sem-data" ? "checked" : ""} onchange="mudarModoEditModal(this.value)"> 🚫 Sem data</label>
+          <label><input type="radio" name="editModo" value="unica" ${modoAtual === "unica" ? "checked" : ""} onchange="mudarModoEditModal(this.value)"> 📅 Data</label>
+          <label><input type="radio" name="editModo" value="periodo" ${modoAtual === "periodo" ? "checked" : ""} onchange="mudarModoEditModal(this.value)"> 📆 Período</label>
+        </div>
+      </div>
+
+      <div id="editModoUnica" style="display:${modoAtual === "unica" ? "block" : "none"};">
+        <div class="campo">
+          <label>Data</label>
+          <input type="date" id="editData" value="${escaparHtml(item.data || "")}">
+        </div>
+      </div>
+
+      <div id="editModoPeriodo" style="display:${modoAtual === "periodo" ? "block" : "none"};">
+        <div class="linha-dupla">
+          <div class="campo">
+            <label>Início</label>
+            <input type="date" id="editDataInicio" value="${escaparHtml(item.dataInicio || "")}">
+          </div>
+          <div class="campo">
+            <label>Fim</label>
+            <input type="date" id="editDataFim" value="${escaparHtml(item.dataFim || "")}">
+          </div>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Anotações</label>
+        <textarea id="editObs" placeholder="Fórmulas, resumo, links...">${escaparHtml(item.observacoes || "")}</textarea>
+      </div>
+
+      <div class="campo">
+        <label>Links</label>
+        <div class="links-lista" id="editLinksLista">
+          ${linksHtml}
+        </div>
+        <div class="link-add-form">
+          <input type="text" id="editLinkNome" placeholder="Nome do link">
+          <input type="text" id="editLinkUrl" placeholder="https://...">
+          <button class="btn pequeno neutro" onclick="adicionarLinkModal()">+ Adicionar</button>
+        </div>
+      </div>
+
     </div>
+
     <div class="modal-footer">
-      <button class="btn neutro" onclick="fecharModal()">Cancelar</button>
-      <button class="btn" onclick="salvarItemModal()">
-        ${icone} Adicionar ${tipo}
-      </button>
+      <button class="btn perigo" onclick="removerItemModal()">🗑️ Excluir</button>
+      <div class="modal-footer-dir">
+        <button class="btn neutro" onclick="fecharModal()">Cancelar</button>
+        <button class="btn" onclick="salvarEdicaoModal()">💾 Salvar</button>
+      </div>
     </div>
   `;
-
-  // Sincroniza prioridades dos dois selects
-  setTimeout(() => {
-    const sU = document.getElementById("modalPrioridade");
-    const sP = document.getElementById("modalPrioridadePeriodo");
-    if (sU && sP) {
-      sU.addEventListener("change", () => sP.value = sU.value);
-      sP.addEventListener("change", () => sU.value = sP.value);
-    }
-  }, 0);
 
   overlay.classList.add("aberto");
   document.body.classList.add("modal-aberto");
 
-  // Foco no primeiro campo
   setTimeout(() => {
-    document.getElementById("modalNome")?.focus();
+    document.getElementById("editNome")?.focus();
   }, 100);
 }
 
-/**
- * Fecha o modal.
- */
 function fecharModal() {
   const overlay = document.getElementById("modalOverlay");
   if (!overlay) return;
   overlay.classList.remove("aberto");
   document.body.classList.remove("modal-aberto");
-
+  modalItemEditando = null;
   setTimeout(() => {
     document.getElementById("modalConteudo").innerHTML = "";
   }, 250);
 }
 
-/**
- * Fecha o modal ao clicar fora (no overlay).
- */
 function fecharModalSeFora(event) {
   if (event.target.id === "modalOverlay") fecharModal();
 }
 
-/**
- * Alterna o modo de data no modal.
- */
-function mudarModoDataModal(modo) {
-  modalModoData = modo;
-  const unica = document.getElementById("modalModoUnica");
-  const periodo = document.getElementById("modalModoPeriodo");
+function mudarModoEditModal(modo) {
+  const unica = document.getElementById("editModoUnica");
+  const periodo = document.getElementById("editModoPeriodo");
   if (unica) unica.style.display = modo === "unica" ? "block" : "none";
   if (periodo) periodo.style.display = modo === "periodo" ? "block" : "none";
 }
 
-/**
- * Atualiza os checkboxes de temas no modal.
- */
-function atualizarTemasModal() {
-  const cont = document.getElementById("modalTemasContainer");
-  if (!cont) return;
-  const discId = parseInt(document.getElementById("modalDisciplina")?.value || "0");
-  if (!discId) {
-    cont.innerHTML = '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Escolha uma disciplina acima.</p>';
+function adicionarLinkModal() {
+  const item = itens.find(x => x.id === modalItemEditando);
+  if (!item) return;
+
+  const nome = (document.getElementById("editLinkNome")?.value || "").trim();
+  const url = (document.getElementById("editLinkUrl")?.value || "").trim();
+
+  if (!url) {
+    mostrarToast("Cole o link.", "aviso");
     return;
   }
-  cont.innerHTML = renderTemasModalCheckboxes(discId);
-}
-
-/**
- * Gera os checkboxes de temas de uma disciplina.
- */
-function renderTemasModalCheckboxes(discId) {
-  const temas = itens.filter(i => i.disciplinaId === discId && i.tipo === "tema");
-  if (temas.length === 0) {
-    return '<p style="font-size:0.85rem; color:var(--texto-fraco); padding:0.5rem;">Nenhum tema cadastrado nesta disciplina ainda.</p>';
+  if (!/^https?:\/\//i.test(url)) {
+    mostrarToast("Link precisa começar com http:// ou https://", "erro");
+    return;
   }
-  return `<div class="check-temas">
-    ${temas.map(t => `
-      <label>
-        <input type="checkbox" value="${t.id}" class="modal-tema-check">
-        ${escaparHtml(t.nome)} ${t.semana ? `<small style="color:var(--texto-fraco);">(${escaparHtml(t.semana)})</small>` : ""}
-      </label>
-    `).join("")}
-  </div>`;
+
+  if (!item.links) item.links = [];
+  item.links.push({ nome: nome || url, url });
+
+  document.getElementById("editLinkNome").value = "";
+  document.getElementById("editLinkUrl").value = "";
+
+  renderLinksModal();
+  mostrarToast("🔗 Link adicionado", "sucesso");
 }
 
-/**
- * Salva o item criado no modal.
- */
-function salvarItemModal() {
-  const nome = (document.getElementById("modalNome")?.value || "").trim();
+function removerLinkModal(idx) {
+  const item = itens.find(x => x.id === modalItemEditando);
+  if (!item || !item.links) return;
+  item.links.splice(idx, 1);
+  renderLinksModal();
+}
+
+function renderLinksModal() {
+  const item = itens.find(x => x.id === modalItemEditando);
+  const cont = document.getElementById("editLinksLista");
+  if (!cont || !item) return;
+
+  const links = item.links || [];
+  if (links.length === 0) {
+    cont.innerHTML = '<p style="font-size:0.8rem; color:var(--texto-fraco); padding:0.4rem 0;">Nenhum link ainda.</p>';
+    return;
+  }
+
+  cont.innerHTML = links.map((l, idx) => `
+    <div class="link-item">
+      <span class="link-icone">🔗</span>
+      <a class="link-nome" href="${escaparHtml(l.url)}" target="_blank" rel="noopener">
+        ${escaparHtml(l.nome || l.url)}
+      </a>
+      <button class="link-remover" onclick="removerLinkModal(${idx})" title="Remover">✕</button>
+    </div>
+  `).join("");
+}
+
+function salvarEdicaoModal() {
+  const item = itens.find(x => x.id === modalItemEditando);
+  if (!item) return;
+
+  const nome = (document.getElementById("editNome")?.value || "").trim();
   if (!nome) {
-    mostrarToast("Digite o nome do item.", "aviso");
-    document.getElementById("modalNome")?.focus();
+    mostrarToast("Digite um título.", "aviso");
     return;
   }
 
-  // Disciplina
-  let disciplinaId;
-  if (modalDisciplinaFixa) {
-    disciplinaId = modalDisciplinaFixa;
-  } else {
-    const val = document.getElementById("modalDisciplina")?.value || "";
-    disciplinaId = val ? parseInt(val) : null;
-  }
+  const discVal = document.getElementById("editDisciplina")?.value || "";
+  const prioridade = document.getElementById("editPrioridade")?.value || "media";
+  const semana = (document.getElementById("editSemana")?.value || "").trim();
+  const obs = (document.getElementById("editObs")?.value || "").trim();
 
-  // Prioridade e datas
-  const radio = document.querySelector('input[name="modalModo"]:checked');
+  const radio = document.querySelector('input[name="editModo"]:checked');
   const modo = radio ? radio.value : "sem-data";
 
   let data = "", dataInicio = "", dataFim = "";
-  let prioridade = "media";
 
   if (modo === "unica") {
-    data = document.getElementById("modalData")?.value || "";
-    prioridade = document.getElementById("modalPrioridade")?.value || "media";
+    data = document.getElementById("editData")?.value || "";
   } else if (modo === "periodo") {
-    dataInicio = document.getElementById("modalDataInicio")?.value || "";
-    dataFim = document.getElementById("modalDataFim")?.value || "";
-    prioridade = document.getElementById("modalPrioridadePeriodo")?.value
-              || document.getElementById("modalPrioridade")?.value
-              || "media";
-
+    dataInicio = document.getElementById("editDataInicio")?.value || "";
+    dataFim = document.getElementById("editDataFim")?.value || "";
     if (!dataInicio || !dataFim) {
-      mostrarToast("Preencha início e fim do período.", "aviso");
+      mostrarToast("Preencha início e fim.", "aviso");
       return;
     }
     if (dataFim < dataInicio) {
       mostrarToast("Data final antes da inicial.", "aviso");
       return;
     }
-  } else {
-    // sem-data (tema sem data)
-    prioridade = document.getElementById("modalPrioridade")?.value || "media";
   }
 
-  const semana = (document.getElementById("modalSemana")?.value || "").trim();
-  const obs = (document.getElementById("modalObs")?.value || "").trim();
-
-  // Temas vinculados
-  const temasVinculados = [];
-  document.querySelectorAll(".modal-tema-check:checked").forEach(c => {
-    temasVinculados.push(parseInt(c.value));
-  });
-
-  itens.push(criarItem({
-    disciplinaId,
-    nome,
-    tipo: modalTipoAtual,
-    data,
-    dataInicio,
-    dataFim,
-    semana,
-    prioridade,
-    observacoes: obs,
-    temasVinculados: modalTipoAtual === "tema" ? [] : temasVinculados
-  }));
+  item.nome = nome;
+  item.disciplinaId = discVal ? parseInt(discVal) : null;
+  item.prioridade = prioridade;
+  item.semana = semana;
+  item.observacoes = obs;
+  item.data = data;
+  item.dataInicio = dataInicio;
+  item.dataFim = dataFim;
 
   salvar();
   fecharModal();
   reRenderTudo();
-  mostrarToast("✅ Item adicionado!", "sucesso");
+  mostrarToast("✅ Item atualizado!", "sucesso");
+}
+
+function removerItemModal() {
+  const item = itens.find(x => x.id === modalItemEditando);
+  if (!item) return;
+  if (!confirmar(`Remover "${item.nome}"?`)) return;
+
+  itens = itens.filter(x => x.id !== item.id);
+  itens.forEach(i => {
+    if (i.temasVinculados) {
+      i.temasVinculados = i.temasVinculados.filter(tid => tid !== item.id);
+    }
+  });
+
+  salvar();
+  fecharModal();
+  reRenderTudo();
+  mostrarToast("Item removido.", "");
 }
 
 // Fecha modal com ESC

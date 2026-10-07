@@ -288,20 +288,47 @@ function renderFormDinamicoDisc(disciplinaId) {
         <label>Nome do tema</label>
         <input type="text" id="discNomeItem" placeholder="Ex: Limites e continuidade">
       </div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+
+      <div class="campo">
+        <label>Semana (opcional)</label>
+        <input type="text" id="discSemana" placeholder="Ex: Sem 3">
+      </div>
+
+      <div class="modo-data-toggle">
+        <label><input type="radio" name="discModo" value="sem-data" checked onchange="toggleModoData('disc')"> 🚫 Sem data</label>
+        <label><input type="radio" name="discModo" value="unica" onchange="toggleModoData('disc')"> 📅 Data única</label>
+        <label><input type="radio" name="discModo" value="periodo" onchange="toggleModoData('disc')"> 📆 Período de dias</label>
+      </div>
+
+      <div id="discModoUnica" style="display:none;">
         <div class="campo">
-          <label>Semana</label>
-          <input type="text" id="discSemana" placeholder="Ex: Sem 3">
-        </div>
-        <div class="campo">
-          <label>Prioridade</label>
-          <select id="discPrioridade">
-            <option value="baixa">🟢 Baixa</option>
-            <option value="media" selected>🟡 Média</option>
-            <option value="alta">🔴 Alta</option>
-          </select>
+          <label>Data do tema</label>
+          <input type="date" id="discData">
         </div>
       </div>
+
+      <div id="discModoPeriodo" style="display:none;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.8rem;">
+          <div class="campo">
+            <label>Início</label>
+            <input type="date" id="discDataInicio">
+          </div>
+          <div class="campo">
+            <label>Fim</label>
+            <input type="date" id="discDataFim">
+          </div>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Prioridade</label>
+        <select id="discPrioridade">
+          <option value="baixa">🟢 Baixa</option>
+          <option value="media" selected>🟡 Média</option>
+          <option value="alta">🔴 Alta</option>
+        </select>
+      </div>
+
       <div class="campo">
         <label>Notas / Anotações (opcional)</label>
         <textarea id="discObs" placeholder="Fórmulas, links, lembretes..."></textarea>
